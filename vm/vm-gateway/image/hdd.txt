@@ -1,1 +1,1 @@
-Directory used to hold QEMU HDD files
+Directory used for QEMU HDD files
