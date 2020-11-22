@@ -1,5 +1,3 @@
-/media/*.iso
-/vm/vm-gateway/image/*
-!/vm/vm-gateway/image/hdd.txt
-/vm/vm-w7-64/image/*
-!/vm/vm-w7-64/image/hdd.txt
+/media/*
+/vm/vm-gateway/images/*
+/vm/vm-w7-64/images/*
