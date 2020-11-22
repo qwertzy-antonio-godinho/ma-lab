@@ -1,0 +1,6 @@
+<network ipv6="yes"> 
+  <name>malnet-lan</name>
+  <bridge name='malnet-internal' stp='on' delay='0'/>
+  <mac address='B4:2E:99:3D:A8:43'/>
+</network>
+
