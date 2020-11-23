@@ -5,18 +5,23 @@ Lab using KVM and QEMU
 - Gateway VM: Ubuntu 20.04 Server
 - Analysis: Windows 7 64 (GSP1RMCPRXFRER_EN_DVD)
 
+**Supported**
+- Windows 7 64 Bits (Analysis VM)
+
 **Usage**
 1. Network NAT interface
-- `lab-network.sh --define network-malnet-nat.xml` 
-- `lab-network.sh --autostart network-malnet-nat.xml`
-- `lab-network.sh --up network-malnet-nat.xml`
+- `lab-network.sh --define network-malnet-nat.xml` (only needed once)
+- `lab-network.sh --autostart network-malnet-nat.xml` (only needed once if required)
+- `lab-network.sh --up network-malnet-nat.xml` (only needed after rebooting if no autostart is set)
 
 2. Create the Virtual Hard disks
-- `lab-storage.sh` (2 HDDs, but it's only a few Kbs)
+- `lab-storage.sh` (2 HDDs are created -> Analysis and Gateway, but only take a few Kbs as no OS is installed yet)
+
 3. If Windows 7, pull Virtio Drivers
 - `lab-virtio-windows-drivers.sh --download-drivers`
 - `lab-virtio-windows-drivers.sh --make-bootstrap`
-4. Install
+
+4. Install OS into VM
 - `lab-vm-image-builder.sh`
 
 **Scripts**
