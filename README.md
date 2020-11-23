@@ -6,7 +6,7 @@ Lab using KVM and QEMU
 - Analysis: Windows 7 64 (GSP1RMCPRXFRER_EN_DVD)
 
 **Scripts**
-- `lab-virtio-windows-drivers.sh` : Downloads the latest available Windows virtio drivers and creates an auxiliary ISO file to be able to automate Windows guests installation. This script uses a file `autounattend.xml` which holds information for unnatended (automated) Windows installations without user interaction. You can use https://www.windowsafg.com/ website to create one for other Windows versions (the one included is for Windows 7 64 Bits). Then it just a matter of adding the necessary `<DriverPaths>` values to point Windows during installation to the CD containing the drivers.
+- `lab-virtio-windows-drivers.sh` : Downloads Windows virtio drivers (Some versions of Windows (7 64 Bits) needs drivers or won't detect the Hard Disk and will fail installation) and creates an auxiliary ISO file to be able to automate Windows guests installation. This script uses a file `autounattend.xml` which holds information for unnatended (automated) Windows installations without user interaction. You can use https://www.windowsafg.com/ website to create yours other Windows versions are supported -- you then have to manualy edit the file and add the necessary `<DriverPaths>` values to point Windows during installation to the auxiliary CD containing the drivers. The process currently is fully automated for Windows 7 64 (GSP1RMCPRXFRER_EN_DVD).
 
 ![](./screenshots/lab-virtio-windows-drivers.png)
 
@@ -16,11 +16,11 @@ Lab using KVM and QEMU
 
 ![](./screenshots/lab-network.png)
 
-- `lab-storage.sh` : Creates VM Hard Disk files, by default looks under directory vm for HDDs to build, specifically for a vm.settings file containing build variables
+- `lab-storage.sh` : Creates VM Hard Disk files, by default looks under directory vm for HDDs to build, specifically for a vm.settings file containing build variables. Everytime it's run it will format the HDD files!
 
 ![](./screenshots/lab-storage.png)
 
-- `get-windows-key.sh` : Scrapes Microsoft Windows https://docs.microsoft.com/en-us/windows-server/get-started/kmsclientkeys page for Windows Serial Keys and displays them in the terminal. <u>Serials provided by Microsoft</u>.
+- `get-windows-key.sh` : Scrapes Microsoft Windows https://docs.microsoft.com/en-us/windows-server/get-started/kmsclientkeys page for Windows Serial Keys and displays them in the terminal. **Serials provided by Microsoft**.
 
 ![](./screenshots/get-windows-key.png)
 
