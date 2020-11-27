@@ -26,9 +26,11 @@ Lab using KVM and QEMU
 
 2. Copy a Windows 7 64 Bit ISO file into `images` directory
 
-3. In `lab-win7-64-vm-builder.sh` file change variable VM_WINDOWS_ISO to match the Windows ISO file amd customize VM_NAME, VM_DISK_SIZE and VM_DISK_TYPE variables. Optionaly configure `autounattend.xml` and `vm-setup.ps1` file.
+3. In `lab-win7-64-vm-builder.sh` file change variable VM_WINDOWS_ISO to match the Windows ISO file amd customize VM_NAME, VM_DISK_SIZE, VM_DISK_TYPE and VM_DATA_TOOLS_ARCHIVE variables. Optionaly configure `autounattend.xml` and `vm-setup.ps1` file.
 
-4. Install OS into VM by running `lab-win7-64-vm-builder.sh --build`.
+4. (Optional) if required an archive with the name using in VM_DATA_TOOLS_ARCHIVE can be used as a transfer medium to make data available to the guest OS.
+
+5. Install OS into VM by running `lab-win7-64-vm-builder.sh --build`.
 
 **Script description**
 - `lab-win7-64-vm-builder.sh` : Sets environment, downloads, build ISOs and executes QEMU to install the target OS on a virtual hard disk file.
