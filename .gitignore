@@ -1,4 +1,4 @@
-/data/OpenSSH-*.zip
+/data/tools*
 /images/*.iso
 /logs/*
 /build/*

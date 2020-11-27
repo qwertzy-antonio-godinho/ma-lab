@@ -7,6 +7,7 @@ VM_WINDOWS_ISO="en_windows_7_professional_with_sp1_x64_dvd_u_676939.iso"
 VM_DRIVERS_URL="https://fedorapeople.org/groups/virt/virtio-win/deprecated-isos/latest/virtio-win-0.1-100.iso"
 VM_DRIVERS_ISO_NAME="virtio-windows-drivers.iso"
 VM_DATA_ISO_NAME="windows-data.iso"
+VM_DATA_TOOLS_ARCHIVE="tools.7z"
 
 # VM Settings
 # ------------------------------
@@ -145,18 +146,7 @@ function build () {
     printfl "I" "Building $VM_DATA_ISO_NAME ISO file ... \n"
     if [ ! -d "$SBD/data" ]; then mkdir "$SBD/data"; fi
     printfl "I" "Extracting Virtio drivers data: $(7z x "$SBD/images/$VM_DRIVERS_ISO_NAME" -o"$SBD/build/drivers" -y)\n"
-    local github_openssh_filename="OpenSSH-Win64.zip"
-    if [ ! -e "$SBD/data/OpenSSH-Win64.zip" ]; then
-        local curl_openssh_return_code=0
-        local github_openssh_latest_version=$(curl --silent "https://api.github.com/repos/PowerShell/Win32-OpenSSH/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-        local github_openssh_url="https://github.com/PowerShell/Win32-OpenSSH/releases/download/$github_openssh_latest_version/$github_openssh_filename"
-        printfl "I" "Downloading OpenSSH file ... \n"
-        curl -L -S --progress-bar -C - "$github_openssh_url" -o "$SBD/data/$github_openssh_filename" || curl_openssh_return_code=$?
-        if [ $curl_openssh_return_code -ne 0 ]; then printfl "E" "Connection to $github_openssh_url failed with return code $curl_openssh_return_code\n\n"; exit "$curl_openssh_return_code"; fi
-    else
-        printfl "" "$(file "$SBD/data/$github_openssh_filename")\n"
-    fi
-    printfl "I" "Extracting OpenSSH data: $(7z x "$SBD/data/$github_openssh_filename" -o"$SBD/build/tools" -y)\n"
+    if [ -f "$SBD/data/$VM_DATA_TOOLS_ARCHIVE" ]; then printfl "I" "Extracting $VM_DATA_TOOLS_ARCHIVE data: $(7z x "$SBD/data/$VM_DATA_TOOLS_ARCHIVE" -o"$SBD/build/" -y)\n"; fi
     printfl "I" "Copying data files:\n$(cp --verbose -r "$SBD/data/autounattend.xml" "$SBD/data/vm-setup.ps1" "$SBD/build")\n"
     printfl "I" "Building data ISO file ...\n"
     mkisofs -m '.*' -J -r "$SBD/build" > "$SBD/images/$VM_DATA_ISO_NAME"
@@ -197,6 +187,7 @@ function main () {
     if [ ! -n "$VM_DRIVERS_URL" ]; then missing_variables+=("VM_DRIVERS_URL"); fi
     if [ ! -n "$VM_DRIVERS_ISO_NAME" ]; then missing_variables+=("VM_DRIVERS_ISO_NAME"); fi
     if [ ! -n "$VM_DATA_ISO_NAME" ]; then missing_variables+=("VM_DATA_ISO_NAME"); fi
+    if [ ! -n "$VM_DATA_TOOLS_ARCHIVE" ]; then missing_variables+=("VM_DATA_TOOLS_ARCHIVE"); fi
     if [ ! -n "$VM_NAME" ]; then missing_variables+=("VM_NAME"); fi
     if [ ! -n "$VM_DISK_SIZE" ]; then missing_variables+=("VM_DISK_SIZE"); fi
     if [ ! -n "$VM_DISK_TYPE" ]; then missing_variables+=("VM_DISK_TYPE"); fi
