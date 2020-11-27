@@ -1,3 +1,4 @@
-/media/*
-/vm/vm-gateway/images/*
-/vm/vm-w7-64/images/*
+/images/*.iso
+/logs/*
+/build/*
+*.qcow2

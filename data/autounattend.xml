@@ -162,6 +162,16 @@
                     <Description>Control Panel Icon Size</Description>
                     <CommandLine>reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel" /v AllItemsIconView /t REG_DWORD /d undefined /f</CommandLine>
                 </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <Order>4</Order>
+                    <CommandLine>%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe -executionpolicy bypass %SystemRoot%\ConfigSetRoot\vm-setup.ps1</CommandLine>
+                    <Description>Run post-installation scripts</Description>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <Order>5</Order>
+                    <CommandLine>cmd /c rd /s /q %SystemRoot%\ConfigSetRoot</CommandLine>
+                    <Description>Remove post-installation scripts</Description>
+                </SynchronousCommand>
             </FirstLogonCommands>
         </component>
     </settings>

@@ -1,4 +1,0 @@
-# Set the VM disk size: K is Kilobytes, M is Megabytes, G is Gigabytes, T is Terabytes, P is Petabytes and E is Exabytes
-DISK_SIZE=55G
-# Set disk type: qcow2 is QEMU image format, raw is Raw disk image format, qcow is old QEMU image format, vdi is VirtualBox 1.1 compatible, vmdk is VMware 3 and 4 compatible image format
-DISK_TYPE=qcow2
