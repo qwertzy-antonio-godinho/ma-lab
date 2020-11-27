@@ -75,7 +75,7 @@
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <DriverPaths>
                 <PathAndCredentials wcm:action="add" wcm:keyValue="1">
-                    <Path>E:\WIN7\AMD64\</Path>
+                    <Path>E:\DRIVERS\WIN7\AMD64\</Path>
                 </PathAndCredentials>
             </DriverPaths>
         </component>

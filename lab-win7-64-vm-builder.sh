@@ -108,11 +108,11 @@ function printfl() {
 
 function build () {
     if [ ! -d "$SBD/images" ]; then mkdir "$SBD/images"; fi
-    local curl_return_code=0
+    local curl_virtio_return_code=0
     if [ ! -e "$SBD/images/$VM_DRIVERS_ISO_NAME" ]; then
         printfl "I" "Downloading Virtio drivers ISO file ... \n"
-        curl -L -S --progress-bar -C - "$VM_DRIVERS_URL" -o "$SBD/images/$VM_DRIVERS_ISO_NAME" || curl_return_code=$?
-        if [ $curl_return_code -ne 0 ]; then printfl "E" "Connection to $VM_DRIVERS_URL failed with return code $curl_return_code\n\n"; exit "$curl_return_code"; fi
+        curl -L -S --progress-bar -C - "$VM_DRIVERS_URL" -o "$SBD/images/$VM_DRIVERS_ISO_NAME" || virtio_curl_return_code=$?
+        if [ $virtio_curl_return_code -ne 0 ]; then printfl "E" "Connection to $VM_DRIVERS_URL failed with return code $virtio_curl_return_code\n\n"; exit "$virtio_curl_return_code"; fi
     else
         printfl "" "$(file "$SBD/images/$VM_DRIVERS_ISO_NAME")\n"
     fi
@@ -144,7 +144,19 @@ function build () {
     if [ ! -d "$SBD/build" ]; then mkdir "$SBD/build"; else rm -rf "$SBD/build"; fi
     printfl "I" "Building $VM_DATA_ISO_NAME ISO file ... \n"
     if [ ! -d "$SBD/data" ]; then mkdir "$SBD/data"; fi
-    printfl "I" "Extracting data: $(7z x "$SBD/images/$VM_DRIVERS_ISO_NAME" -o"$SBD/build" -y)\n"
+    printfl "I" "Extracting Virtio drivers data: $(7z x "$SBD/images/$VM_DRIVERS_ISO_NAME" -o"$SBD/build/drivers" -y)\n"
+    local github_openssh_filename="OpenSSH-Win64.zip"
+    if [ ! -e "$SBD/data/OpenSSH-Win64.zip" ]; then
+        local curl_openssh_return_code=0
+        local github_openssh_latest_version=$(curl --silent "https://api.github.com/repos/PowerShell/Win32-OpenSSH/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        local github_openssh_url="https://github.com/PowerShell/Win32-OpenSSH/releases/download/$github_openssh_latest_version/$github_openssh_filename"
+        printfl "I" "Downloading OpenSSH file ... \n"
+        curl -L -S --progress-bar -C - "$github_openssh_url" -o "$SBD/data/$github_openssh_filename" || curl_openssh_return_code=$?
+        if [ $curl_openssh_return_code -ne 0 ]; then printfl "E" "Connection to $github_openssh_url failed with return code $curl_openssh_return_code\n\n"; exit "$curl_openssh_return_code"; fi
+    else
+        printfl "" "$(file "$SBD/data/$github_openssh_filename")\n"
+    fi
+    printfl "I" "Extracting OpenSSH data: $(7z x "$SBD/data/$github_openssh_filename" -o"$SBD/build/tools" -y)\n"
     printfl "I" "Copying data files:\n$(cp --verbose -r "$SBD/data/autounattend.xml" "$SBD/data/vm-setup.ps1" "$SBD/build")\n"
     printfl "I" "Building data ISO file ...\n"
     mkisofs -m '.*' -J -r "$SBD/build" > "$SBD/images/$VM_DATA_ISO_NAME"
@@ -152,10 +164,11 @@ function build () {
     if [ ! -f "$SBD/images/$VM_WINDOWS_ISO" ]; then
         printfl "E" "Windows ISO file not found ...\n"
     else
-        printfl "I" "Booting $SBD/$VM_NAME.$VM_DISK_TYPE file [CD1: $SBD/images/$VM_WINDOWS_ISO, CD2: $SBD/images/$VM_DATA_ISO_NAME] ...\n"
+        printfl "I" "Booting virtual disk $SBD/$VM_NAME.$VM_DISK_TYPE [CD1: $SBD/images/$VM_WINDOWS_ISO, CD2: $SBD/images/$VM_DATA_ISO_NAME] ...\n"
+        # malnet-wan = access to internet, malnet-lan = no access to internet
         $QEMU_EXECUTABLE \
             -machine pc,accel=kvm -m 2G -vga std \
-            -net user -net nic,model=rtl8139,id=malnet-wan \ # malnet-wan = access to internet, malnet-lan = no access to internet
+            -net user -net nic,model=rtl8139,id=malnet-wan \
             -device virtio-scsi-pci -device scsi-hd,drive=vd0 \
             -drive if=none,aio=native,cache=none,discard=unmap,file="$SBD/$VM_NAME.$VM_DISK_TYPE",id=vd0 \
             -drive media=cdrom,file="$SBD/images/$VM_WINDOWS_ISO" \
@@ -196,7 +209,7 @@ function main () {
             ;;
             *)
                 printfl "E" "$0 - Option \"$value_action\" was not recognized ...\n"
-                printfl "" "--build       : Starts installation process on a virtual disk, if the virtual disk exists boots OS virtual disk, else willfor installation\n"
+                printfl "" "--build       : Starts installation of the OS on a virtual disk file\n"
             ;;
         esac
     fi
