@@ -192,9 +192,6 @@ function main () {
             "--build")
                 build
             ;;
-	    "--boot")
-                boot
-            ;;
             *)
                 printfl "E" "$0 - Option \"$value_action\" was not recognized ...\n"
                 printfl "" "--build       : Starts installation process on a virtual disk, if the virtual disk exists boots OS virtual disk, else willfor installation\n"
