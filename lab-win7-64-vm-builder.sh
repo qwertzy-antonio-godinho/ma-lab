@@ -66,6 +66,8 @@ function logo() {
           "@!! !!@ @!@  @!@!@!@!  @!@!  @!!       @!@!@!@!  @!@!@!@ "
           "!!:     !!:  !!:  !!!        !!:       !!:  !!!  !!:  !!!"
           " :      :     :   : :        : ::.: :   :   : :  :: : :: "
+          ""
+          $GRAY$VM_NAME
           $NC)
     for i in "${logo[@]}"
     do
@@ -153,7 +155,7 @@ function build () {
         printfl "I" "Booting $SBD/$VM_NAME.$VM_DISK_TYPE file [CD1: $SBD/images/$VM_WINDOWS_ISO, CD2: $SBD/images/$VM_DATA_ISO_NAME] ...\n"
         $QEMU_EXECUTABLE \
             -machine pc,accel=kvm -m 2G -vga std \
-            -net user -net nic,model=rtl8139,id=malnet-wan \
+            -net user -net nic,model=rtl8139,id=malnet-wan \ # malnet-wan = access to internet, malnet-lan = no access to internet
             -device virtio-scsi-pci -device scsi-hd,drive=vd0 \
             -drive if=none,aio=native,cache=none,discard=unmap,file="$SBD/$VM_NAME.$VM_DISK_TYPE",id=vd0 \
             -drive media=cdrom,file="$SBD/images/$VM_WINDOWS_ISO" \

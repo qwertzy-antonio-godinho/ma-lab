@@ -1,18 +1,28 @@
-# ma-lab
+```
+@@@@@@@@@@    @@@@@@         @@@        @@@@@@   @@@@@@@ 
+@@! @@! @@!  @@!  @@@        @@!       @@!  @@@  @@!  @@@
+@!! !!@ @!@  @!@!@!@!  @!@!  @!!       @!@!@!@!  @!@!@!@ 
+!!:     !!:  !!:  !!!        !!:       !!:  !!!  !!:  !!!
+ :      :     :   : :        : ::.: :   :   : :  :: : :: 
+```
 Lab using KVM and QEMU
 
 **VMs**
-- Analysis: Windows 7 64 (GSP1RMCPRXFRER_EN_DVD)
-- TODO: Gateway VM: Ubuntu 20.04 Server
+- Analysis machine: Windows 7 64 Bit (GSP1RMCPRXFRER_EN_DVD)
+- Gateway machine: Ubuntu 20.04 Server
 
-**Supported**
-- Windows 7 64 Bits (Analysis VM)
+**Dependencies**
+- KVM (in Ubuntu `sudo apt install -y qemu qemu-kvm libvirt-daemon libvirt-clients bridge-utils virt-manager`)
+- 7z (in Ubuntu `sudo apt install -y p7zip`) 
+- mkisofs
+- curl
+- bash (other shells not tested)
 
 **Usage**
-1. Network NAT interface
+1. Setting the Network NAT interface
 - `lab-network.sh --define network-malnet-nat.xml` (only needed once)
-- `lab-network.sh --autostart network-malnet-nat.xml` (only needed once, if required)
-- `lab-network.sh --up network-malnet-nat.xml` (only needed after rebooting if no autostart is set)
+- `lab-network.sh --autostart network-malnet-nat.xml`
+- `lab-network.sh --up network-malnet-nat.xml` (if autostart is not set, then this script needs to be run after every host reboot)
 
 2. Copy a Windows 7 64 Bit ISO file into `images` directory
 
@@ -21,7 +31,7 @@ Lab using KVM and QEMU
 4. Install OS into VM by running `lab-win7-64-vm-builder.sh --build`.
 
 **Script description**
-- `lab-win7-64-vm-builder.sh` : Runs QEMU and installs the OS. No username or password necessary to login.
+- `lab-win7-64-vm-builder.sh` : Sets environment, downloads, build ISOs and executes QEMU to install the target OS on a virtual hard disk file.
 
 ![](./screenshots/lab-win7-64-vm-builder.png)
 
