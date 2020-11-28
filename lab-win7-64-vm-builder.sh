@@ -1,5 +1,12 @@
 #! /bin/bash
 
+# VM Settings
+# ------------------------------
+
+VM_NAME="w7b64"
+VM_DISK_SIZE=80G
+VM_DISK_TYPE=qcow2
+
 # VM ISOs
 # ------------------------------
 
@@ -9,14 +16,14 @@ VM_DRIVERS_ISO_NAME="virtio-windows-drivers.iso"
 VM_DATA_ISO_NAME="windows-data.iso"
 VM_DATA_TOOLS_ARCHIVE="tools.7z"
 
-# VM Settings
+# Paths
 # ------------------------------
 
-VM_NAME="w7b64"
-VM_DISK_SIZE=80G
-VM_DISK_TYPE=qcow2
+VAR_IMAGES="$SBD/images"
+VAR_BUILD="$SBD/build/$VM_NAME"
+VAR_DATA="$SBD/data/$VM_NAME"
 
-# //////////////////////////////////////////////////////////////////////////
+# ////////////////////////////////////////////////////////////////////////// CODE ///
 
 # Start
 # ------------------------------
@@ -36,13 +43,6 @@ BLUE=$(tput setaf 6)
 WHITE=$(tput setaf 7)
 GRAY=$(tput setaf 8)
 NC=$(tput sgr0) # No colour
-
-# Paths
-# ------------------------------
-
-VAR_IMAGES="$SBD/images"
-VAR_BUILD="$SBD/build/$VM_NAME"
-VAR_DATA="$SBD/data/$VM_NAME"
 
 # CTRL+C
 # ------------------------------
@@ -127,7 +127,6 @@ function build () {
                     break
                 ;;
                 [nN]* )
-                    printfl "I" "Booting virtual disk $SBD/$VM_NAME.$VM_DISK_TYPE ... \n"
                     break
                 ;;
                 *)
@@ -138,16 +137,16 @@ function build () {
     fi
     printfl "" "$(file "$SBD/$VM_NAME.$VM_DISK_TYPE")\n"
     if [ ! -d "$VAR_BUILD" ]; then mkdir -p "$VAR_BUILD"; else rm -rf "$VAR_BUILD"; fi
-    printfl "I" "Building $VM_DATA_ISO_NAME ISO file ... \n"
+    printfl "I" "Starting $VM_DATA_ISO_NAME build process ... \n"
     if [ ! -d "$VAR_DATA" ]; then mkdir -p "$VAR_DATA"; fi
-    printfl "I" "Extracting Virtio drivers data: $(7z x "$VAR_IMAGES/$VM_DRIVERS_ISO_NAME" -o"$VAR_BUILD/drivers" -y)\n"
-    if [ -f "$VAR_DATA/$VM_DATA_TOOLS_ARCHIVE" ]; then printfl "I" "Extracting $VM_DATA_TOOLS_ARCHIVE data: $(7z x "$VAR_DATA/$VM_DATA_TOOLS_ARCHIVE" -o"$VAR_BUILD/" -y)\n"; fi
-    printfl "I" "Copying data files:\n$(cp --verbose -r "$VAR_DATA/autounattend.xml" "$VAR_DATA/vm-setup.ps1" "$VAR_BUILD")\n"
-    printfl "I" "Building data ISO file ...\n"
-    mkisofs -m '.*' -J -r "$VAR_BUILD" > "$VAR_IMAGES/$VM_DATA_ISO_NAME"
+    printfl "" "Extracting Virtio drivers data: $(7z x "$VAR_IMAGES/$VM_DRIVERS_ISO_NAME" -o"$VAR_BUILD/drivers" -y)\n"
+    if [ -f "$VAR_DATA/$VM_DATA_TOOLS_ARCHIVE" ]; then printfl "" "Extracting $VM_DATA_TOOLS_ARCHIVE data: $(7z x "$VAR_DATA/$VM_DATA_TOOLS_ARCHIVE" -o"$VAR_BUILD/" -y)\n"; fi
+    printfl "" "Copying automation script files:\n$(cp --verbose -r "$VAR_DATA/automation/"* "$VAR_BUILD")\n"
+    printfl "I" "Generating $VM_DATA_ISO_NAME ISO file ...\n"
+    mkisofs -quiet -m '.*' -J -r "$VAR_BUILD" > "$VAR_IMAGES/$VM_DATA_ISO_NAME"
     printfl "" "$(file "$VAR_IMAGES/$VM_DATA_ISO_NAME")\n"
     if [ ! -f "$VAR_IMAGES/$VM_WINDOWS_ISO" ]; then
-        printfl "E" "Windows ISO file  $RED$VAR_IMAGES/$VM_WINDOWS_ISO missing$NC, exiting ...\n"
+        printfl "E" "Windows ISO ${RED}file $VAR_IMAGES/$VM_WINDOWS_ISO missing$NC, exiting ...\n"
     else
         printfl "I" "Booting virtual disk $SBD/$VM_NAME.$VM_DISK_TYPE [CD1: $VAR_IMAGES/$VM_WINDOWS_ISO, CD2: $VAR_IMAGES/$VM_DATA_ISO_NAME] ...\n"
         # malnet-wan = access to internet, malnet-lan = no access to internet
@@ -184,6 +183,9 @@ function main () {
     if [ ! -n "$VM_NAME" ]; then missing_variables+=("VM_NAME"); fi
     if [ ! -n "$VM_DISK_SIZE" ]; then missing_variables+=("VM_DISK_SIZE"); fi
     if [ ! -n "$VM_DISK_TYPE" ]; then missing_variables+=("VM_DISK_TYPE"); fi
+    if [ ! -n "$VAR_IMAGES" ]; then missing_variables+=("VAR_IMAGES"); fi
+    if [ ! -n "$VAR_BUILD" ]; then missing_variables+=("VAR_BUILD"); fi
+    if [ ! -n "$VAR_DATA" ]; then missing_variables+=("VAR_DATA"); fi
     if [ ${#missing_variables[@]} -ne 0 ]; then
         printfl "E" "Missing variable(s): ${missing_variables[*]}\n"
     else
