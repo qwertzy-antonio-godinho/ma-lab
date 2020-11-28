@@ -20,7 +20,6 @@ VM_WINDOWS_ISO="en_windows_7_professional_with_sp1_x64_dvd_u_676939.iso"
 VM_DRIVERS_URL="https://fedorapeople.org/groups/virt/virtio-win/deprecated-isos/latest/virtio-win-0.1-100.iso"
 VM_DRIVERS_ISO_NAME="virtio-windows-drivers.iso"
 VM_DATA_ISO_NAME="windows-data.iso"
-VM_DATA_TOOLS_ARCHIVE="tools.7z"
 
 # Paths
 # ------------------------------
@@ -139,7 +138,7 @@ function build () {
     printfl "I" "Starting $VM_DATA_ISO_NAME build process ... \n"
     if [ ! -d "$VAR_DATA" ]; then mkdir -p "$VAR_DATA"; fi
     printfl "" "Extracting Virtio drivers data: $(7z x "$VAR_IMAGES/$VM_DRIVERS_ISO_NAME" -o"$VAR_BUILD/drivers" -y)\n"
-    if [ -f "$VAR_DATA/$VM_DATA_TOOLS_ARCHIVE" ]; then printfl "" "Extracting $VM_DATA_TOOLS_ARCHIVE data: $(7z x "$VAR_DATA/$VM_DATA_TOOLS_ARCHIVE" -o"$VAR_BUILD/" -y)\n"; fi
+    if [ -d "$VAR_DATA/$tools" ]; then printfl "" "Copying tools files:\n$(cp --verbose -r "$VAR_DATA/tools" "$VAR_BUILD")\n"; fi
     printfl "" "Copying automation script files:\n$(cp --verbose -r "$VAR_DATA/automation/"* "$VAR_BUILD")\n"
     printfl "I" "Generating $VM_DATA_ISO_NAME ISO file ...\n"
     mkisofs -quiet -m '.*' -J -r "$VAR_BUILD" > "$VAR_IMAGES/$VM_DATA_ISO_NAME"
@@ -150,7 +149,7 @@ function build () {
         printfl "I" "Booting virtual disk $SBD/$VM_NAME.$VM_DISK_TYPE [CD1: $VAR_IMAGES/$VM_WINDOWS_ISO, CD2: $VAR_IMAGES/$VM_DATA_ISO_NAME] ...\n"
         # malnet-wan = access to internet, malnet-lan = no access to internet
         $QEMU_EXECUTABLE \
-            -machine pc,accel=kvm -m 2G -vga std \
+            -machine pc,accel=kvm -m 4G -vga std \
             -net user -net nic,model=rtl8139,id=malnet-wan \
             -device virtio-scsi-pci -device scsi-hd,drive=vd0 \
             -drive if=none,aio=native,cache=none,discard=unmap,file="$SBD/$VM_NAME.$VM_DISK_TYPE",id=vd0 \
@@ -178,7 +177,6 @@ function main () {
     if [ ! -n "$VM_DRIVERS_URL" ]; then missing_variables+=("VM_DRIVERS_URL"); fi
     if [ ! -n "$VM_DRIVERS_ISO_NAME" ]; then missing_variables+=("VM_DRIVERS_ISO_NAME"); fi
     if [ ! -n "$VM_DATA_ISO_NAME" ]; then missing_variables+=("VM_DATA_ISO_NAME"); fi
-    if [ ! -n "$VM_DATA_TOOLS_ARCHIVE" ]; then missing_variables+=("VM_DATA_TOOLS_ARCHIVE"); fi
     if [ ! -n "$VM_NAME" ]; then missing_variables+=("VM_NAME"); fi
     if [ ! -n "$VM_DISK_SIZE" ]; then missing_variables+=("VM_DISK_SIZE"); fi
     if [ ! -n "$VM_DISK_TYPE" ]; then missing_variables+=("VM_DISK_TYPE"); fi
