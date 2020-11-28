@@ -12,7 +12,7 @@ VM_DATA_TOOLS_ARCHIVE="tools.7z"
 # VM Settings
 # ------------------------------
 
-VM_NAME="WIN7-64"
+VM_NAME="w7b64"
 VM_DISK_SIZE=80G
 VM_DISK_TYPE=qcow2
 
@@ -22,8 +22,6 @@ VM_DISK_TYPE=qcow2
 # ------------------------------
 
 SBD=$(dirname "$0")
-NOW=$(date +"%Y%m%d%H%M%S")
-LOG="$SBD/logs/$NOW-$(basename $0).log"
 DISPLAY_LOGO=1
 
 # Colour palette
@@ -39,14 +37,21 @@ WHITE=$(tput setaf 7)
 GRAY=$(tput setaf 8)
 NC=$(tput sgr0) # No colour
 
+# Paths
+# ------------------------------
+
+VAR_IMAGES="$SBD/images"
+VAR_BUILD="$SBD/build/$VM_NAME"
+VAR_DATA="$SBD/data/$VM_NAME"
+
 # CTRL+C
 # ------------------------------
 
 stty -echoctl # Hide ^C
 
 trap_ctrlc() {
-    printfl "E" "SIGINT caught, exiting ...\n\n"
-    if [ -d "$SBD/build" ]; then rm -rf "$SBD/build"; fi
+    printfl "E" "${RED}SIGINT$NC caught, exiting ...\n\n"
+    if [ -d "$VAR_BUILD" ]; then rm -rf "$VAR_BUILD"; fi
     exit 127
 }
 
@@ -68,7 +73,7 @@ function logo() {
           "!!:     !!:  !!:  !!!        !!:       !!:  !!!  !!:  !!!"
           " :      :     :   : :        : ::.: :   :   : :  :: : :: "
           ""
-          $GRAY$VM_NAME
+          "${GRAY}Virtual Machine: $VM_NAME"
           $NC)
     for i in "${logo[@]}"
     do
@@ -82,40 +87,31 @@ function logo() {
 function printfl() {
     local value_error_type="$1"
     local value_error_message="$2"
-    local value_message_id=""
     case "$value_error_type" in
         "W") # Warning
-            value_message_id="[ # ] > "
-            printf "$YELLOW$value_message_id$NC$value_error_message$NC"
-        ;;
-        "L") # Log
-            value_message_id="[ + ] > "
+            printf "$YELLOW[ * ] >$NC $value_error_message$NC"
         ;;
         "I") # Information
-            value_message_id="[ * ] > "
-            printf "$GREEN$value_message_id$NC$value_error_message$NC"
+            printf "$GREEN[ # ] >$NC $value_error_message$NC"
         ;;
         "E") # Error
-            value_message_id="[ ! ] > "
-            printf "$RED$value_message_id$NC$value_error_message$NC"
+            printf "$RED[ ! ] >$NC $value_error_message$NC"
         ;;
         *) # Regular
-            value_message_id="[ - ] > "
-            printf "$GRAY$value_message_id$NC$value_error_message$NC"
+            printf "$GRAY[ + ] >$NC $value_error_message$NC"
         ;;
     esac
-    printf "$value_message_id $value_error_message" >> "$LOG"
 }
 
 function build () {
-    if [ ! -d "$SBD/images" ]; then mkdir "$SBD/images"; fi
+    if [ ! -d "$VAR_IMAGES" ]; then mkdir -p "$VAR_IMAGES"; fi
     local curl_virtio_return_code=0
-    if [ ! -e "$SBD/images/$VM_DRIVERS_ISO_NAME" ]; then
+    if [ ! -e "$VAR_IMAGES/$VM_DRIVERS_ISO_NAME" ]; then
         printfl "I" "Downloading Virtio drivers ISO file ... \n"
-        curl -L -S --progress-bar -C - "$VM_DRIVERS_URL" -o "$SBD/images/$VM_DRIVERS_ISO_NAME" || virtio_curl_return_code=$?
-        if [ $virtio_curl_return_code -ne 0 ]; then printfl "E" "Connection to $VM_DRIVERS_URL failed with return code $virtio_curl_return_code\n\n"; exit "$virtio_curl_return_code"; fi
+        curl -L -S --progress-bar -C - "$VM_DRIVERS_URL" -o "$VAR_IMAGES/$VM_DRIVERS_ISO_NAME" || curl_virtio_return_code=$?
+        if [ $curl_virtio_return_code -ne 0 ]; then printfl "E" "Connection to $VM_DRIVERS_URL failed with return code $RED$curl_virtio_return_code$NC\n\n"; exit "$curl_virtio_return_code"; fi
     else
-        printfl "" "$(file "$SBD/images/$VM_DRIVERS_ISO_NAME")\n"
+        printfl "" "$(file "$VAR_IMAGES/$VM_DRIVERS_ISO_NAME")\n"
     fi
     if [ ! -f "$SBD/$VM_NAME.$VM_DISK_TYPE" ]; then
         printfl "I" "Creating new virtual disk $SBD/$VM_NAME.$VM_DISK_TYPE ... \n"
@@ -125,7 +121,6 @@ function build () {
         do
             printfl "W" "Virtual disk $SBD/$VM_NAME.$VM_DISK_TYPE exists, do you want to format the disk? (Y|y = format, N|n = boot disk)\n"
             read answer
-            printfl "L" "$answer\n"
             case $answer in
                 [yY]* )
                     printfl "" "$(qemu-img create -f "$VM_DISK_TYPE" "$SBD/$VM_NAME.$VM_DISK_TYPE" "$VM_DISK_SIZE")\n"
@@ -142,29 +137,29 @@ function build () {
         done
     fi
     printfl "" "$(file "$SBD/$VM_NAME.$VM_DISK_TYPE")\n"
-    if [ ! -d "$SBD/build" ]; then mkdir "$SBD/build"; else rm -rf "$SBD/build"; fi
+    if [ ! -d "$VAR_BUILD" ]; then mkdir -p "$VAR_BUILD"; else rm -rf "$VAR_BUILD"; fi
     printfl "I" "Building $VM_DATA_ISO_NAME ISO file ... \n"
-    if [ ! -d "$SBD/data" ]; then mkdir "$SBD/data"; fi
-    printfl "I" "Extracting Virtio drivers data: $(7z x "$SBD/images/$VM_DRIVERS_ISO_NAME" -o"$SBD/build/drivers" -y)\n"
-    if [ -f "$SBD/data/$VM_DATA_TOOLS_ARCHIVE" ]; then printfl "I" "Extracting $VM_DATA_TOOLS_ARCHIVE data: $(7z x "$SBD/data/$VM_DATA_TOOLS_ARCHIVE" -o"$SBD/build/" -y)\n"; fi
-    printfl "I" "Copying data files:\n$(cp --verbose -r "$SBD/data/autounattend.xml" "$SBD/data/vm-setup.ps1" "$SBD/build")\n"
+    if [ ! -d "$VAR_DATA" ]; then mkdir -p "$VAR_DATA"; fi
+    printfl "I" "Extracting Virtio drivers data: $(7z x "$VAR_IMAGES/$VM_DRIVERS_ISO_NAME" -o"$VAR_BUILD/drivers" -y)\n"
+    if [ -f "$VAR_DATA/$VM_DATA_TOOLS_ARCHIVE" ]; then printfl "I" "Extracting $VM_DATA_TOOLS_ARCHIVE data: $(7z x "$VAR_DATA/$VM_DATA_TOOLS_ARCHIVE" -o"$VAR_BUILD/" -y)\n"; fi
+    printfl "I" "Copying data files:\n$(cp --verbose -r "$VAR_DATA/autounattend.xml" "$VAR_DATA/vm-setup.ps1" "$VAR_BUILD")\n"
     printfl "I" "Building data ISO file ...\n"
-    mkisofs -m '.*' -J -r "$SBD/build" > "$SBD/images/$VM_DATA_ISO_NAME"
-    printfl "" "$(file "$SBD/images/$VM_DATA_ISO_NAME")\n"
-    if [ ! -f "$SBD/images/$VM_WINDOWS_ISO" ]; then
-        printfl "E" "Windows ISO file not found ...\n"
+    mkisofs -m '.*' -J -r "$VAR_BUILD" > "$VAR_IMAGES/$VM_DATA_ISO_NAME"
+    printfl "" "$(file "$VAR_IMAGES/$VM_DATA_ISO_NAME")\n"
+    if [ ! -f "$VAR_IMAGES/$VM_WINDOWS_ISO" ]; then
+        printfl "E" "Windows ISO file  $RED$VAR_IMAGES/$VM_WINDOWS_ISO missing$NC, exiting ...\n"
     else
-        printfl "I" "Booting virtual disk $SBD/$VM_NAME.$VM_DISK_TYPE [CD1: $SBD/images/$VM_WINDOWS_ISO, CD2: $SBD/images/$VM_DATA_ISO_NAME] ...\n"
+        printfl "I" "Booting virtual disk $SBD/$VM_NAME.$VM_DISK_TYPE [CD1: $VAR_IMAGES/$VM_WINDOWS_ISO, CD2: $VAR_IMAGES/$VM_DATA_ISO_NAME] ...\n"
         # malnet-wan = access to internet, malnet-lan = no access to internet
         $QEMU_EXECUTABLE \
             -machine pc,accel=kvm -m 2G -vga std \
             -net user -net nic,model=rtl8139,id=malnet-wan \
             -device virtio-scsi-pci -device scsi-hd,drive=vd0 \
             -drive if=none,aio=native,cache=none,discard=unmap,file="$SBD/$VM_NAME.$VM_DISK_TYPE",id=vd0 \
-            -drive media=cdrom,file="$SBD/images/$VM_WINDOWS_ISO" \
-            -drive media=cdrom,file="$SBD/images/$VM_DATA_ISO_NAME"
+            -drive media=cdrom,file="$VAR_IMAGES/$VM_WINDOWS_ISO" \
+            -drive media=cdrom,file="$VAR_IMAGES/$VM_DATA_ISO_NAME"
     fi
-    if [ -d "$SBD/build" ]; then rm -rf "$SBD/build"; fi
+    if [ -d "$VAR_BUILD" ]; then rm -rf "$VAR_BUILD"; fi
     printfl "I" "Process complete, exiting ...\n"
 }
 
@@ -178,10 +173,8 @@ function main () {
     local value_parameters="$parameters"
     printf "\n"
     if [ "$DISPLAY_LOGO" -eq 1 ]; then logo; fi
-    if [ ! -d "$SBD/logs" ]; then mkdir "$SBD/logs"; fi
-    printfl "I" "Logging to file $LOG ...\n"
-    printfl "L" "Action: $value_action\n"
-    printfl "L" "Parameters: $value_parameters\n"
+    printfl "I" "Action: $value_action\n"
+    printfl "I" "Parameters: $value_parameters\n"
     local missing_variables=()
     if [ ! -n "$VM_WINDOWS_ISO" ]; then missing_variables+=("VM_WINDOWS_ISO"); fi
     if [ ! -n "$VM_DRIVERS_URL" ]; then missing_variables+=("VM_DRIVERS_URL"); fi
@@ -199,8 +192,8 @@ function main () {
                 build
             ;;
             *)
-                printfl "E" "$0 - Option \"$value_action\" was not recognized ...\n"
-                printfl "" "--build       : Starts installation of the OS on a virtual disk file\n"
+                printfl "E" "$0 - Option \"$RED$value_action$NC\" was not recognized ...\n"
+                printfl "" "$MAGENTA--build:$NC Starts installation of the OS on a virtual disk file\n"
             ;;
         esac
     fi

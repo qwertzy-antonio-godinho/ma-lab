@@ -1,5 +1,4 @@
-/data/tools*
+/data/w7b64/tools*
 /images/*.iso
-/logs/*
-/build/*
+/build
 *.qcow2
