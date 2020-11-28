@@ -108,13 +108,10 @@ function printfl() {
 function build () {
     if [ ! -d "$VAR_IMAGES" ]; then mkdir -p "$VAR_IMAGES"; fi
     local curl_virtio_return_code=0
-    if [ ! -e "$VAR_IMAGES/$VM_DRIVERS_ISO_NAME" ]; then
-        printfl "I" "Downloading Virtio drivers ISO file ... \n"
-        curl -L -S --progress-bar -C - "$VM_DRIVERS_URL" -o "$VAR_IMAGES/$VM_DRIVERS_ISO_NAME" || curl_virtio_return_code=$?
-        if [ $curl_virtio_return_code -ne 0 ]; then printfl "E" "Connection to $VM_DRIVERS_URL failed with return code $RED$curl_virtio_return_code$NC\n\n"; exit "$curl_virtio_return_code"; fi
-    else
-        printfl "" "$(file "$VAR_IMAGES/$VM_DRIVERS_ISO_NAME")\n"
-    fi
+    printfl "I" "Downloading Virtio drivers ISO file ... \n"
+    curl -L -S --progress-bar -C - "$VM_DRIVERS_URL" -o "$VAR_IMAGES/$VM_DRIVERS_ISO_NAME" || curl_virtio_return_code=$?
+    if [ $curl_virtio_return_code -ne 0 ]; then printfl "E" "Connection to $VM_DRIVERS_URL failed with return code $RED$curl_virtio_return_code$NC\n\n"; exit "$curl_virtio_return_code"; fi
+    printfl "" "$(file "$VAR_IMAGES/$VM_DRIVERS_ISO_NAME")\n"
     if [ ! -f "$SBD/$VM_NAME.$VM_DISK_TYPE" ]; then
         printfl "I" "Creating new virtual disk $SBD/$VM_NAME.$VM_DISK_TYPE ... \n"
         printfl "" "$(qemu-img create -f "$VM_DISK_TYPE" "$SBD/$VM_NAME.$VM_DISK_TYPE" "$VM_DISK_SIZE")\n"
