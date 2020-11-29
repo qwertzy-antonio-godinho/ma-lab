@@ -19,7 +19,7 @@ Collection of bash scripts to automate the installation of an Operating System o
 - bash
 
 **Usage**
-1. Setting the Network NAT interface
+1. Setting up the network:
 - WAN network:
     - `lab-network.sh --define network-malnet-nat.xml` (only needed once)
     - `lab-network.sh --autostart network-malnet-nat.xml`
