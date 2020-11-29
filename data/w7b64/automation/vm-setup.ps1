@@ -29,13 +29,22 @@ foreach ($tn in $tasknames) {
 # Stop and disable useless services. Found with:
 # Get-Service | Where-Object {$_.status -eq "running"}
 $services = @(
+# -------------------------------------------
+# -------------------------------------------
+# -------------------------------------------
+# "Windows Defender",
+# "Windows Firewall",
+"Windows Update",
+# -------------------------------------------
+# -------------------------------------------
+# -------------------------------------------
 "Background Intelligent Transfer Service",
 "Disk Defragmenter",
 "IP Helper",
 "Diagnostic Policy Service",
-"Network Connections",
-"Network List Service",
-"Network Location Awareness",
+# "Network Connections",
+# "Network List Service",
+# "Network Location Awareness",
 "Program Compatibility Assistant Service",
 "Desktop Window Manager Session Manager",
 "Print Spooler",
@@ -46,13 +55,10 @@ $services = @(
 "Themes",
 # "Windows Audio",
 # "Windows Audio Endpoint Builder",
-"Windows Event Collector",
-"Windows Error Reporting Service",
-"Windows Defender",
 # "Windows Event Log",
-# "Windows Firewall",
-"Windows Search",
-"Windows Update"
+# "Windows Event Collector",
+# "Windows Search",
+"Windows Error Reporting Service"
 )
 foreach ($svc in $services) {
     Get-Service "$svc" | Stop-Service -Force -PassThru | Set-Service -StartupType disabled
@@ -99,7 +105,10 @@ if ("$act" -NotLike '*Licensed*') {
     $needsReboot = $?
 }
 
+# certmgr.exe /add  E:\tools\install\MicRooCerAut2011_2011_03_22.crt /s /r localMachine root
+
 if ($needsReboot) {
     Restart-Computer
 }
+
 # vim: set sw=4 et ts=4:

@@ -10,8 +10,8 @@ DISPLAY_LOGO=1
 # ------------------------------
 
 VM_NAME="w7b64"
-VM_DISK_SIZE=80G
-VM_DISK_TYPE=qcow2
+VM_DISK_SIZE="80G"
+VM_DISK_TYPE="qcow2"
 
 # VM ISOs
 # ------------------------------
@@ -27,12 +27,13 @@ VM_DATA_ISO_NAME="windows-data.iso"
 VAR_IMAGES="$SBD/images"
 VAR_BUILD="$SBD/build/$VM_NAME"
 VAR_DATA="$SBD/data/$VM_NAME"
+VAR_OUTPUT="$SBD/disks"
 
 # ////////////////////////////////////////////////////////////////////////// CODE ///
 
 
 
-# Colour palette
+# Screen functions
 # ------------------------------
 
 RED=$(tput setaf 1)
@@ -44,46 +45,6 @@ BLUE=$(tput setaf 6)
 WHITE=$(tput setaf 7)
 GRAY=$(tput setaf 8)
 NC=$(tput sgr0) # No colour
-
-# CTRL+C
-# ------------------------------
-
-stty -echoctl # Hide ^C
-
-trap_ctrlc() {
-    printfl "E" "${RED}SIGINT$NC caught, exiting ...\n\n"
-    if [ -d "$VAR_BUILD" ]; then rm -rf "$VAR_BUILD"; fi
-    exit 127
-}
-
-trap "trap_ctrlc" SIGINT
-
-# QEMU
-# ------------------------------
-
-if [ $(arch) = "x86_64" ]; then QEMU_EXECUTABLE="qemu-system-x86_64"; else QEMU_EXECUTABLE="qemu-system-i386"; fi
-
-# Screen helpers
-# ------------------------------
-
-function logo() {
-    declare -a logo
-    logo=($BLUE"@@@@@@@@@@    @@@@@@         @@@        @@@@@@   @@@@@@@ "
-          "@@! @@! @@!  @@!  @@@        @@!       @@!  @@@  @@!  @@@"
-          "@!! !!@ @!@  @!@!@!@!  @!@!  @!!       @!@!@!@!  @!@!@!@ "
-          "!!:     !!:  !!:  !!!        !!:       !!:  !!!  !!:  !!!"
-          " :      :     :   : :        : ::.: :   :   : :  :: : :: "
-          ""
-          "${GRAY}Virtual Machine: $VM_NAME"
-          $NC)
-    for i in "${logo[@]}"
-    do
-        printf "$i\n"
-    done
-}
-
-# VM helpers
-# ------------------------------
 
 function printfl() {
     local value_error_type="$1"
@@ -104,24 +65,76 @@ function printfl() {
     esac
 }
 
-function build () {
+# CTRL+C
+# ------------------------------
+
+stty -echoctl # Hide ^C
+
+cleanup() {
+    if [ -d "$VAR_BUILD" ]; then rm -rf "$VAR_BUILD"; fi
+}
+
+trap_ctrlc() {
+    printfl "E" "${RED}SIGINT$NC caught, exiting ...\n\n"
+    cleanup
+    exit 127
+}
+
+trap "trap_ctrlc" SIGINT
+
+# Hypervisor architecture detection
+# ------------------------------
+
+if [ $(arch) = "x86_64" ]; then QEMU_EXECUTABLE="qemu-system-x86_64"; else QEMU_EXECUTABLE="qemu-system-i386"; fi
+
+# Logo functions
+# ------------------------------
+
+function logo() {
+    declare -a logo
+    logo=($BLUE"@@@@@@@@@@    @@@@@@         @@@        @@@@@@   @@@@@@@ "
+          "@@! @@! @@!  @@!  @@@        @@!       @@!  @@@  @@!  @@@"
+          "@!! !!@ @!@  @!@!@!@!  @!@!  @!!       @!@!@!@!  @!@!@!@ "
+          "!!:     !!:  !!:  !!!        !!:       !!:  !!!  !!:  !!!"
+          " :      :     :   : :        : ::.: :   :   : :  :: : :: "
+          ""
+          "${GRAY}Virtual Machine: $VM_NAME"
+          $NC)
+    for i in "${logo[@]}"
+    do
+        printf "$i\n"
+    done
+}
+
+# VM functions
+# ------------------------------
+
+function download_virtio_drivers () {
     if [ ! -d "$VAR_IMAGES" ]; then mkdir -p "$VAR_IMAGES"; fi
     local curl_virtio_return_code=0
     printfl "I" "Downloading Virtio drivers ISO file ... \n"
     curl -L -S --progress-bar -C - "$VM_DRIVERS_URL" -o "$VAR_IMAGES/$VM_DRIVERS_ISO_NAME" || curl_virtio_return_code=$?
-    if [ $curl_virtio_return_code -ne 0 ]; then printfl "E" "Connection to $VM_DRIVERS_URL failed with return code $RED$curl_virtio_return_code$NC\n\n"; exit "$curl_virtio_return_code"; fi
+    if [ $curl_virtio_return_code -ne 0 ]; then 
+        printfl "E" "Connection to $VM_DRIVERS_URL failed with return code $RED$curl_virtio_return_code$NC\n\n"
+        exit "$curl_virtio_return_code"
+    fi
     printfl "" "$(file "$VAR_IMAGES/$VM_DRIVERS_ISO_NAME")\n"
-    if [ ! -f "$SBD/$VM_NAME.$VM_DISK_TYPE" ]; then
-        printfl "I" "Creating new virtual disk $SBD/$VM_NAME.$VM_DISK_TYPE ... \n"
-        printfl "" "$(qemu-img create -f "$VM_DISK_TYPE" "$SBD/$VM_NAME.$VM_DISK_TYPE" "$VM_DISK_SIZE")\n"
+}
+
+function create_virtual_hdd_disk () {
+    if [ ! -d "$VAR_OUTPUT" ]; then mkdir -p "$VAR_OUTPUT"; fi
+    local create_disk_command="qemu-img create -f "$VM_DISK_TYPE" "$SBD/$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE" "$VM_DISK_SIZE""
+    if [ ! -f "$SBD/$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE" ]; then
+        printfl "I" "Creating new virtual disk $SBD/$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE ... \n"
+        printfl "" "$($create_disk_command)\n"
     else
         while true
         do
-            printfl "W" "Virtual disk $SBD/$VM_NAME.$VM_DISK_TYPE exists, do you want to format the disk? (Y|y = format, N|n = boot disk)\n"
+            printfl "W" "Virtual disk $SBD/$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE exists, do you want to format the disk? (Y|y = format, N|n = boot disk)\n"
             read answer
             case $answer in
                 [yY]* )
-                    printfl "" "$(qemu-img create -f "$VM_DISK_TYPE" "$SBD/$VM_NAME.$VM_DISK_TYPE" "$VM_DISK_SIZE")\n"
+                    printfl "" "$($create_disk_command)\n"
                     break
                 ;;
                 [nN]* )
@@ -133,7 +146,10 @@ function build () {
             esac
         done
     fi
-    printfl "" "$(file "$SBD/$VM_NAME.$VM_DISK_TYPE")\n"
+    printfl "" "$(file "$SBD/$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE")\n"
+}
+
+function create_cdrom_disc () {
     if [ ! -d "$VAR_BUILD" ]; then mkdir -p "$VAR_BUILD"; else rm -rf "$VAR_BUILD"; fi
     printfl "I" "Starting $VM_DATA_ISO_NAME build process ... \n"
     if [ ! -d "$VAR_DATA" ]; then mkdir -p "$VAR_DATA"; fi
@@ -143,22 +159,35 @@ function build () {
     printfl "I" "Generating $VM_DATA_ISO_NAME ISO file ...\n"
     mkisofs -quiet -m '.*' -J -r "$VAR_BUILD" > "$VAR_IMAGES/$VM_DATA_ISO_NAME"
     printfl "" "$(file "$VAR_IMAGES/$VM_DATA_ISO_NAME")\n"
+}
+
+function boot_qemu () {
+    printfl "W" "QEMU binary: $QEMU_EXECUTABLE\n"
     if [ ! -f "$VAR_IMAGES/$VM_WINDOWS_ISO" ]; then
         printfl "E" "Windows ISO ${RED}file $VAR_IMAGES/$VM_WINDOWS_ISO missing$NC, exiting ...\n"
     else
-        printfl "I" "Booting virtual disk $SBD/$VM_NAME.$VM_DISK_TYPE [CD1: $VAR_IMAGES/$VM_WINDOWS_ISO, CD2: $VAR_IMAGES/$VM_DATA_ISO_NAME] ...\n"
+        printfl "I" "Booting virtual disk $SBD/$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE [CD1: $VAR_IMAGES/$VM_WINDOWS_ISO, CD2: $VAR_IMAGES/$VM_DATA_ISO_NAME] ...\n"
         # malnet-wan = access to internet, malnet-lan = no access to internet
         $QEMU_EXECUTABLE \
             -machine pc,accel=kvm -m 4G -vga std \
             -net user -net nic,model=rtl8139,id=malnet-wan \
             -device virtio-scsi-pci -device scsi-hd,drive=vd0 \
-            -drive if=none,aio=native,cache=none,discard=unmap,file="$SBD/$VM_NAME.$VM_DISK_TYPE",id=vd0 \
+            -drive if=none,aio=native,cache=none,discard=unmap,file="$SBD/$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE",id=vd0 \
             -drive media=cdrom,file="$VAR_IMAGES/$VM_WINDOWS_ISO" \
             -drive media=cdrom,file="$VAR_IMAGES/$VM_DATA_ISO_NAME"
     fi
-    if [ -d "$VAR_BUILD" ]; then rm -rf "$VAR_BUILD"; fi
+}
+
+function build () {
+    download_virtio_drivers
+    create_virtual_hdd_disk
+    create_cdrom_disc
+    boot_qemu
+    cleanup
     printfl "I" "Process complete, exiting ...\n"
 }
+
+# ////////////////////////////////////////////////////////////////////////// MAIN ///
 
 
 
@@ -183,6 +212,7 @@ function main () {
     if [ ! -n "$VAR_IMAGES" ]; then missing_variables+=("VAR_IMAGES"); fi
     if [ ! -n "$VAR_BUILD" ]; then missing_variables+=("VAR_BUILD"); fi
     if [ ! -n "$VAR_DATA" ]; then missing_variables+=("VAR_DATA"); fi
+    if [ ! -n "$VAR_OUTPUT" ]; then missing_variables+=("VAR_OUTPUT"); fi
     if [ ${#missing_variables[@]} -ne 0 ]; then
         printfl "E" "Missing variable(s): ${missing_variables[*]}\n"
     else

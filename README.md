@@ -5,7 +5,7 @@
 !!:     !!:  !!:  !!!        !!:       !!:  !!!  !!:  !!!
  :      :     :   : :        : ::.: :   :   : :  :: : :: 
 ```
-Lab using KVM and QEMU
+Collection of bash scripts to automate the installation of an Operating System on a virtual hard disk. The objective is to reduce the time necessary to setup a base lab.
 
 **VMs**
 - Analysis machine: Windows 7 64 Bit (tested with GSP1RMCPRXFRER_EN_DVD iso)
@@ -16,7 +16,7 @@ Lab using KVM and QEMU
 - p7zip (Ubuntu `sudo apt install -y p7zip`) 
 - mkisofs
 - curl
-- bash (other shells not tested)
+- bash
 
 **Usage**
 1. Setting the Network NAT interface
@@ -32,11 +32,15 @@ Lab using KVM and QEMU
 
 2. Place a copy of a Windows 7 64 Bit ISO file in `images` directory
 
-3. Edit `lab-win7-64-vm-builder.sh` file and if necessary change the variable VM_WINDOWS_ISO to match the Windows ISO file, customize VM_NAME, VM_DISK_SIZE, VM_DISK_TYPE and VM_DATA_TOOLS_ARCHIVE variables. (Optional) Any files places inside VAR_DATA/tools directory will me included in the ISO build.
+3. Edit `lab-win7-64-vm-builder.sh` file:
+    - VM_WINDOWS_ISO variable points to Windows ISO file
+    - Customize VM_NAME, VM_DISK_SIZE, VM_DISK_TYPE variables
 
-4. (Optional) Edit VM configuration files `autounattend.xml` (Executed during installation) and `vm-setup.ps1` (Executed post installation) to suit your needs.
+4. Optional steps:
+    - Edit VM configuration files `autounattend.xml` (drives installation) and `vm-setup.ps1` (executed post installation) to suit your needs
+    - Any files places inside `tools` directory will me included in the ISO build and copied over to the desktop.
 
-5. Install OS into VM by running `lab-win7-64-vm-builder.sh --build`.
+5. Execute `lab-win7-64-vm-builder.sh --build`.
 
 **Script description**
 - `lab-win7-64-vm-builder.sh` : Sets environment, downloads, build ISOs and executes QEMU to install the target OS on a virtual hard disk file.

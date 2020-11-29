@@ -1,4 +1,6 @@
-/data/w7b64/tools*
-/images/*.iso
-/build
-*.qcow2
+/build/*
+/disks/*
+/data/w7b64/tools/*
+!/data/w7b64/tools/tools_here.txt
+/images/*
+!/images/os_iso_here.txt

@@ -58,6 +58,7 @@
             </ImageInstall>
             <UserData>
                 <ProductKey>
+                    <!-- KEY -->
                     <Key>HYF8J-CVRMY-CM74G-RPHKF-PW487</Key>
                     <WillShowUI>OnError</WillShowUI>
                 </ProductKey>
@@ -69,12 +70,12 @@
             <UseConfigurationSet>true</UseConfigurationSet>
         </component>
 
-        <!-- AUXILIARY CD DRIVERS LOCATION -->
         <component name="Microsoft-Windows-PnpCustomizationsWinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS"
             xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <DriverPaths>
                 <PathAndCredentials wcm:action="add" wcm:keyValue="1">
+                    <!-- CD DRIVERS LOCATION -->
                     <Path>E:\DRIVERS\WIN7\AMD64\</Path>
                 </PathAndCredentials>
             </DriverPaths>
@@ -98,9 +99,11 @@
         <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS"
             xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <ComputerName>-PC</ComputerName>
+            <!-- COMPUTER NAME -->
+            <ComputerName>W7B64-PC</ComputerName>
+            <!-- KEY -->
             <ProductKey>HYF8J-CVRMY-CM74G-RPHKF-PW487</ProductKey>
-            <TimeZone>AUS Eastern Standard Time</TimeZone>
+            <TimeZone>Mountain Standard Time</TimeZone>
         </component>
     </settings>
 
@@ -127,13 +130,14 @@
                 <LocalAccounts>
                     <LocalAccount wcm:action="add">
                         <Password>
+                            <!-- USER PASSWORD: NOT SET -->
                             <Value></Value>
                             <PlainText>true</PlainText>
                         </Password>
                         <Description></Description>
-                        <DisplayName>demo</DisplayName>
-                        <Group>Administrators</Group>
-                        <Name>demo</Name>
+                        <DisplayName>W7B64</DisplayName>
+                        <Group>Administrators;Power Users</Group>
+                        <Name>W7B64</Name>
                     </LocalAccount>
                 </LocalAccounts>
             </UserAccounts>
@@ -142,13 +146,16 @@
                     <Value></Value>
                     <PlainText>true</PlainText>
                 </Password>
+                <!-- AUTOLOGON: YES -->
                 <Enabled>true</Enabled>
-                <Username>demo</Username>
+                <Username>W7B64</Username>
             </AutoLogon>
             <DisableAutoDaylightTimeSet>false</DisableAutoDaylightTimeSet>
+            
             <FirstLogonCommands>
                 <SynchronousCommand wcm:action="add">
                     <Order>1</Order>
+                    <!-- AUTO UPDATES: OFF -->
                     <Description>Disable Auto Updates</Description>
                     <CommandLine>reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update" /v AUOptions /t REG_DWORD /d 1 /f</CommandLine>
                 </SynchronousCommand>
@@ -164,6 +171,7 @@
                 </SynchronousCommand>
                 <SynchronousCommand wcm:action="add">
                     <Order>4</Order>
+                    <!-- EXECUTE COMMAND -->
                     <CommandLine>%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe -executionpolicy bypass %SystemRoot%\ConfigSetRoot\vm-setup.ps1</CommandLine>
                     <Description>Run post-installation scripts</Description>
                 </SynchronousCommand>
@@ -172,7 +180,14 @@
                     <CommandLine>cmd /c rd /s /q %SystemRoot%\ConfigSetRoot</CommandLine>
                     <Description>Remove post-installation scripts</Description>
                 </SynchronousCommand>
+                <!-- COPY TOOLS DIRECTORY FROM CD-ROM TO DESKTOP -->
+                <SynchronousCommand wcm:action="add">
+                    <Order>6</Order>
+                    <CommandLine>cmd /c xcopy E:\TOOLS\* C:\Users\W7B64\Desktop\ /E /H /C /I</CommandLine>
+                    <Description>Post-installation setup</Description>
+                </SynchronousCommand>
             </FirstLogonCommands>
+            
         </component>
     </settings>
 
