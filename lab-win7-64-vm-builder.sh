@@ -123,14 +123,14 @@ function download_virtio_drivers () {
 
 function create_virtual_hdd_disk () {
     if [ ! -d "$VAR_OUTPUT" ]; then mkdir -p "$VAR_OUTPUT"; fi
-    local create_disk_command="qemu-img create -f "$VM_DISK_TYPE" "$SBD/$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE" "$VM_DISK_SIZE""
-    if [ ! -f "$SBD/$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE" ]; then
-        printfl "I" "Creating new virtual disk $SBD/$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE ... \n"
+    local create_disk_command="qemu-img create -f "$VM_DISK_TYPE" "$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE" "$VM_DISK_SIZE""
+    if [ ! -f "$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE" ]; then
+        printfl "I" "Creating new virtual disk $VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE ... \n"
         printfl "" "$($create_disk_command)\n"
     else
         while true
         do
-            printfl "W" "Virtual disk $SBD/$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE exists, do you want to format the disk? (Y|y = format, N|n = boot disk)\n"
+            printfl "W" "Virtual disk $VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE exists, do you want to format the disk? (Y|y = format, N|n = boot disk)\n"
             read answer
             case $answer in
                 [yY]* )
@@ -146,10 +146,10 @@ function create_virtual_hdd_disk () {
             esac
         done
     fi
-    printfl "" "$(file "$SBD/$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE")\n"
+    printfl "" "$(file "$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE")\n"
 }
 
-function create_cdrom_disc () {
+function build_cdrom_disc () {
     if [ ! -d "$VAR_BUILD" ]; then mkdir -p "$VAR_BUILD"; else rm -rf "$VAR_BUILD"; fi
     printfl "I" "Starting $VM_DATA_ISO_NAME build process ... \n"
     if [ ! -d "$VAR_DATA" ]; then mkdir -p "$VAR_DATA"; fi
@@ -157,7 +157,7 @@ function create_cdrom_disc () {
     if [ -d "$VAR_DATA/$tools" ]; then printfl "" "Copying tools files:\n$(cp --verbose -r "$VAR_DATA/tools" "$VAR_BUILD")\n"; fi
     printfl "" "Copying automation script files:\n$(cp --verbose -r "$VAR_DATA/automation/"* "$VAR_BUILD")\n"
     printfl "I" "Generating $VM_DATA_ISO_NAME ISO file ...\n"
-    mkisofs -quiet -m '.*' -J -r "$VAR_BUILD" > "$VAR_IMAGES/$VM_DATA_ISO_NAME"
+    mkisofs -m '.*' -J -r "$VAR_BUILD" > "$VAR_IMAGES/$VM_DATA_ISO_NAME"
     printfl "" "$(file "$VAR_IMAGES/$VM_DATA_ISO_NAME")\n"
 }
 
@@ -166,13 +166,13 @@ function boot_qemu () {
     if [ ! -f "$VAR_IMAGES/$VM_WINDOWS_ISO" ]; then
         printfl "E" "Windows ISO ${RED}file $VAR_IMAGES/$VM_WINDOWS_ISO missing$NC, exiting ...\n"
     else
-        printfl "I" "Booting virtual disk $SBD/$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE [CD1: $VAR_IMAGES/$VM_WINDOWS_ISO, CD2: $VAR_IMAGES/$VM_DATA_ISO_NAME] ...\n"
+        printfl "I" "Booting virtual disk $VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE [CD1: $VAR_IMAGES/$VM_WINDOWS_ISO, CD2: $VAR_IMAGES/$VM_DATA_ISO_NAME] ...\n"
         # malnet-wan = access to internet, malnet-lan = no access to internet
         $QEMU_EXECUTABLE \
             -machine pc,accel=kvm -m 4G -vga std \
             -net user -net nic,model=rtl8139,id=malnet-wan \
             -device virtio-scsi-pci -device scsi-hd,drive=vd0 \
-            -drive if=none,aio=native,cache=none,discard=unmap,file="$SBD/$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE",id=vd0 \
+            -drive if=none,aio=native,cache=none,discard=unmap,file="$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE",id=vd0 \
             -drive media=cdrom,file="$VAR_IMAGES/$VM_WINDOWS_ISO" \
             -drive media=cdrom,file="$VAR_IMAGES/$VM_DATA_ISO_NAME"
     fi
@@ -181,7 +181,7 @@ function boot_qemu () {
 function build () {
     download_virtio_drivers
     create_virtual_hdd_disk
-    create_cdrom_disc
+    build_cdrom_disc
     boot_qemu
     cleanup
     printfl "I" "Process complete, exiting ...\n"
@@ -220,9 +220,17 @@ function main () {
             "--build")
                 build
             ;;
+            "--build-cdrom-disc")
+                build_cdrom_disc
+            ;;
+            "--boot-qemu")
+                boot_qemu
+            ;;
             *)
                 printfl "E" "$0 - Option \"$RED$value_action$NC\" was not recognized ...\n"
-                printfl "" "$MAGENTA--build:$NC Starts installation of the OS on a virtual disk file\n"
+                printfl "" "$MAGENTA--build:$NC Starts build process and installation of the OS to a virtual disk file\n"
+                printfl "" "$MAGENTA--build-cdrom-disc:$NC Builds $VAR_BUILD > $VAR_IMAGES/$VM_DATA_ISO_NAME CD-ROM disc\n"
+                printfl "" "$MAGENTA--boot-qemu:$NC Boots $VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE OS image using $QEMU_EXECUTABLE \n"
             ;;
         esac
     fi
