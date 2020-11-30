@@ -1,10 +1,5 @@
-```
-@@@@@@@@@@    @@@@@@         @@@        @@@@@@   @@@@@@@ 
-@@! @@! @@!  @@!  @@@        @@!       @@!  @@@  @@!  @@@
-@!! !!@ @!@  @!@!@!@!  @!@!  @!!       @!@!@!@!  @!@!@!@ 
-!!:     !!:  !!:  !!!        !!:       !!:  !!!  !!:  !!!
- :      :     :   : :        : ::.: :   :   : :  :: : :: 
-```
+![](./screenshots/ma-lab.png)
+
 Collection of bash scripts to automate the installation of an Operating System on a virtual hard disk. The objective is to reduce the time necessary to setup a base lab.
 
 **VMs**
