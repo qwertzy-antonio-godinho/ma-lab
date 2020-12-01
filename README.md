@@ -4,7 +4,7 @@ Collection of bash scripts to automate the installation of an Operating System o
 
 **VMs**
 - Analysis machine: Windows 7 64 Bit (tested with GSP1RMCPRXFRER_EN_DVD iso)
-- Gateway machine: Ubuntu 20.04 Server
+- Gateway machine: Ubuntu 20.04 Server (TODO)
 
 **Dependencies**
 - KVM (Ubuntu `sudo apt install -y qemu qemu-kvm libvirt-daemon libvirt-clients bridge-utils virt-manager`)
@@ -32,10 +32,12 @@ Collection of bash scripts to automate the installation of an Operating System o
     - Customize VM_NAME, VM_DISK_SIZE, VM_DISK_TYPE variables
 
 4. Optional steps:
-    - Edit VM configuration files `autounattend.xml` (drives installation) and `vm-setup.ps1` (executed post installation) to suit your needs
+    - Edit VM configuration files `autounattend.xml` (drives the installation) and `vm-setup.ps1` (executed post installation) to suit your needs
     - Any files places inside `tools` directory will me included in the ISO build and copied over to the desktop.
 
-5. Execute `lab-win7-64-vm-builder.sh --build`.
+5. Execute `lab-win7-64-vm-builder.sh --build`:
+    - `lab-win7-64-vm-builder.sh --boot-menu`: Installs OS using QEMU
+    - `lab-win7-64-vm-builder.sh --boot-kvm`: Installs OS using KVM
 
 **Script description**
 - `lab-win7-64-vm-builder.sh` : Sets environment, downloads, build ISOs and executes QEMU to install the target OS on a virtual hard disk file.
@@ -43,8 +45,8 @@ Collection of bash scripts to automate the installation of an Operating System o
 ![](./screenshots/lab-win7-64-vm-builder.png)
 
 - `lab-network.sh` : Manages the lab network (bridges and states), definition XML files inside network directory. 
-- *`network-malnet-nat.xml`* : NAT network (name is malnet-wan, address='192.168.200.1', netmask='255.255.255.0', dhcp range start='192.168.200.2' end='192.168.200.254')
-- *`network-malnet-internal.xml`* : Private internal network (name is malnet-internal, mac address='B4:2E:99:3D:A8:43')
+    - *`network-malnet-nat.xml`* : NAT network (name is malnet-wan, address='192.168.200.1', netmask='255.255.255.0', dhcp range start='192.168.200.2' end='192.168.200.254')
+    - *`network-malnet-internal.xml`* : Private internal network (name is malnet-internal, mac address='B4:2E:99:3D:A8:43')
 
 ![](./screenshots/lab-network.png)
 

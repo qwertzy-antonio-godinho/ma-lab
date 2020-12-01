@@ -178,13 +178,37 @@ function boot_qemu () {
     fi
 }
 
+function boot_kvm () {
+    if [ ! -f "$VAR_IMAGES/$VM_WINDOWS_ISO" ]; then
+        printfl "E" "Windows ISO ${RED}file $VAR_IMAGES/$VM_WINDOWS_ISO missing$NC, exiting ...\n"
+    else
+        printfl "I" "Booting virtual disk $VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE [CD1: $VAR_IMAGES/$VM_WINDOWS_ISO, CD2: $VAR_IMAGES/$VM_DATA_ISO_NAME] ...\n"
+        # malnet-wan = access to internet, malnet-lan = no access to internet
+        virt-install \
+            --check all=off \
+            --name="$VM_NAME" \
+            --os-type=Windows \
+            --os-variant=win7 \
+            --arch=x86_64 \
+            --virt-type=kvm \
+            --ram=4096 \
+            --vcpus=2 \
+            --cdrom="$VAR_IMAGES/$VM_WINDOWS_ISO" \
+            --disk "$VAR_IMAGES/$VM_DATA_ISO_NAME",device=cdrom,bus=sata \
+            --disk "$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE",bus=sata,format="$VM_DISK_TYPE" \
+            --graphics spice \
+            --network network=malnet-wan \
+            --network network=malnet-lan
+    fi
+}
+
 function build () {
     download_virtio_drivers
     create_virtual_hdd_disk
     build_cdrom_disc
-    boot_qemu
     cleanup
-    printfl "I" "Process complete, exiting ...\n"
+    printfl "I" "Build process complete, exiting ...\n"
+    printfl "W" "Use $0 --boot-qemu or $0 --boot-kvm to install the OS on the virtual disk image\n"
 }
 
 # ////////////////////////////////////////////////////////////////////////// MAIN ///
@@ -226,11 +250,15 @@ function main () {
             "--boot-qemu")
                 boot_qemu
             ;;
+            "--boot-kvm")
+                boot_kvm
+            ;;
             *)
                 printfl "E" "$0 - Option \"$RED$value_action$NC\" was not recognized ...\n"
-                printfl "" "$MAGENTA--build:$NC Starts build process and installation of the OS to a virtual disk file\n"
-                printfl "" "$MAGENTA--build-cdrom-disc:$NC Builds $VAR_BUILD > $VAR_IMAGES/$VM_DATA_ISO_NAME CD-ROM disc\n"
-                printfl "" "$MAGENTA--boot-qemu:$NC Boots $VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE OS image using $QEMU_EXECUTABLE \n"
+                printfl "" "$MAGENTA--build:$NC Bootstraps build process\n"
+                printfl "" "$MAGENTA--build-cdrom-disc:$NC Rebuilds $VAR_BUILD > $VAR_IMAGES/$VM_DATA_ISO_NAME CD-ROM disc\n"
+                printfl "" "$MAGENTA--boot-qemu:$NC Boots $VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE using QEMU\n"
+                printfl "" "$MAGENTA--boot-kvm:$NC Boots $VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE using KVM\n"
             ;;
         esac
     fi
