@@ -15,15 +15,15 @@ Collection of bash scripts to automate the installation of an Operating System o
 
 **Usage**
 1. Setting up the network:
-- WAN network:
-    - `lab-network.sh --define network-malnet-nat.xml` (only needed once)
-    - `lab-network.sh --autostart network-malnet-nat.xml`
-    - `lab-network.sh --up network-malnet-nat.xml` (if autostart is not set, then this script needs to be run after every host reboot)
+    - WAN network:
+        - `lab-network.sh --define network-malnet-nat.xml` (only needed once)
+        - `lab-network.sh --autostart network-malnet-nat.xml`
+        - `lab-network.sh --up network-malnet-nat.xml` (if autostart is not set, then this script needs to be run after every host reboot)
 
-- LAN network:
-    - `lab-network.sh --define network-malnet-internal.xml` (only needed once)
-    - `lab-network.sh --autostart network-malnet-internal.xml`
-    - `lab-network.sh --up network-malnet-internal.xml` (if autostart is not set, then this script needs to be run after every host reboot)
+    - LAN network:
+        - `lab-network.sh --define network-malnet-internal.xml` (only needed once)
+        - `lab-network.sh --autostart network-malnet-internal.xml`
+        - `lab-network.sh --up network-malnet-internal.xml` (if autostart is not set, then this script needs to be run after every host reboot)
 
 2. Place a copy of a Windows 7 64 Bit and Ubuntu 20.04 Server 64 Bit ISO file in `images` directory
 
