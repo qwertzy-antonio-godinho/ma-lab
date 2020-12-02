@@ -4,7 +4,7 @@ Collection of bash scripts to automate the installation of an Operating System o
 
 **VMs**
 - Analysis machine: Windows 7 64 Bit (tested with GSP1RMCPRXFRER_EN_DVD iso)
-- Gateway machine: Ubuntu 20.04 Server (TODO)
+- Gateway machine: Ubuntu 20.04 Server 64 Bit
 
 **Dependencies**
 - KVM (Ubuntu `sudo apt install -y qemu qemu-kvm libvirt-daemon libvirt-clients bridge-utils virt-manager`)
@@ -25,19 +25,30 @@ Collection of bash scripts to automate the installation of an Operating System o
     - `lab-network.sh --autostart network-malnet-internal.xml`
     - `lab-network.sh --up network-malnet-internal.xml` (if autostart is not set, then this script needs to be run after every host reboot)
 
-2. Place a copy of a Windows 7 64 Bit ISO file in `images` directory
+2. Place a copy of a Windows 7 64 Bit and Ubuntu 20.04 Server 64 Bit ISO file in `images` directory
 
-3. Edit `lab-win7-64-vm-builder.sh` file:
-    - VM_WINDOWS_ISO variable points to Windows ISO file
-    - Customize VM_NAME, VM_DISK_SIZE, VM_DISK_TYPE variables
+3. Edit script files:
 
-4. Optional steps:
-    - Edit VM configuration files `autounattend.xml` (drives the installation) and `vm-setup.ps1` (executed post installation) to suit your needs
-    - Any files places inside `tools` directory will me included in the ISO build and copied over to the desktop.
+    - Gateway:
+        - `lab-gateway-vm-builder.sh` file:
+            - VM_OS_ISO
+            - Customize VM_NAME, VM_DISK_SIZE, VM_DISK_TYPE variables
+        - Optional steps:
+            - Edit VM configuration files `user-data`, and set the username and password (default username: gateway, password: ubuntu) `echo YOUR_PASSWORD | mkpasswd -m sha512crypt --stdin`
+            - Any files places inside `tools` directory will me included in the ISO build and accessible from within the guest.
+    - Analysis:
+        - `lab-win7-64-vm-builder.sh` file:
+            - VM_WINDOWS_ISO variable points to Windows ISO file
+            - Customize VM_NAME, VM_DISK_SIZE, VM_DISK_TYPE variables
+        - Optional steps:
+            - Edit VM configuration files `autounattend.xml` (drives the installation: web gui here https://www.windowsafg.com/) and `vm-setup.ps1` (executed post installation) to suit your needs
+            - Any files places inside `tools` directory will me included in the ISO build and copied over to the desktop.
 
-5. Execute `lab-win7-64-vm-builder.sh --build`:
-    - `lab-win7-64-vm-builder.sh --boot-menu`: Installs OS using QEMU
+4. Execute `lab-win7-64-vm-builder.sh --build`:
+
+5. Perform installation:
     - `lab-win7-64-vm-builder.sh --boot-kvm`: Installs OS using KVM
+    - `lab-win7-64-vm-builder.sh --boot-menu`: Installs OS using QEMU
 
 **Script description**
 - `lab-win7-64-vm-builder.sh` : Sets environment, downloads, build ISOs and executes QEMU to install the target OS on a virtual hard disk file.

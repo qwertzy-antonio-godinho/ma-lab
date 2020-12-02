@@ -2,5 +2,7 @@
 /disks/*
 /data/w7b64/tools/*
 !/data/w7b64/tools/tools_here.txt
+/data/gateway/tools/*
+!/data/gateway/tools/tools_here.txt
 /images/*
 !/images/os_iso_here.txt

@@ -9,17 +9,18 @@ DISPLAY_LOGO=1
 # VM Settings
 # ------------------------------
 
-VM_NAME="w7b64"
+VM_NAME="gateway"
 VM_DISK_SIZE="80G"
 VM_DISK_TYPE="qcow2"
 
 # VM ISOs
 # ------------------------------
 
-VM_WINDOWS_ISO="en_windows_7_professional_with_sp1_x64_dvd_u_676939.iso"
-VM_DRIVERS_URL="https://fedorapeople.org/groups/virt/virtio-win/deprecated-isos/latest/virtio-win-0.1-100.iso"
-VM_DRIVERS_ISO_NAME="virtio-windows-drivers.iso"
-VM_DATA_ISO_NAME="windows-data.iso"
+VM_OS_ISO="ubuntu-20.04-live-server-amd64.iso"
+#VM_DRIVERS_URL="https://fedorapeople.org/groups/virt/virtio-win/deprecated-isos/latest/virtio-win-0.1-100.iso"
+#VM_DRIVERS_ISO_NAME="virtio-windows-drivers.iso"
+VM_REMIX_ISO_NAME="ubuntu-20.04-live-server-remixed-amd64.iso"
+VM_DATA_ISO_NAME="gateway-data.iso"
 
 # Paths
 # ------------------------------
@@ -152,37 +153,57 @@ function create_virtual_hdd_disk () {
 function build_cdrom_disc () {
     if [ ! -d "$VAR_BUILD" ]; then mkdir -p "$VAR_BUILD"; else rm -rf "$VAR_BUILD"; fi
     printfl "I" "Starting $VM_DATA_ISO_NAME build process ... \n"
-    if [ ! -d "$VAR_DATA" ]; then mkdir -p "$VAR_DATA"; fi
-    printfl "" "Extracting Virtio drivers data: $(7z x "$VAR_IMAGES/$VM_DRIVERS_ISO_NAME" -o"$VAR_BUILD/drivers" -y)\n"
+    if [ ! -d "$VAR_DATA" ]; then mkdir -p "$VAR_DATA/$VM_NAME"; fi
+    # printfl "" "Extracting Virtio drivers data: $(7z x "$VAR_IMAGES/$VM_DRIVERS_ISO_NAME" -o"$VAR_BUILD/drivers" -y)\n"
     if [ -d "$VAR_DATA/$tools" ]; then printfl "" "Copying tools files:\n$(cp --verbose -r "$VAR_DATA/tools/"* "$VAR_BUILD")\n"; fi
-    printfl "" "Copying automation script files:\n$(cp --verbose -r "$VAR_DATA/automation/"* "$VAR_BUILD")\n"
+    #printfl "" "Copying automation script files:\n$(cp --verbose -r "$VAR_DATA/automation/"* "$VAR_BUILD")\n"
     printfl "I" "Generating $VM_DATA_ISO_NAME ISO file ...\n"
     mkisofs -m '.*' -J -r "$VAR_BUILD" > "$VAR_IMAGES/$VM_DATA_ISO_NAME"
     printfl "" "$(file "$VAR_IMAGES/$VM_DATA_ISO_NAME")\n"
 }
 
+# Reference: https://gist.github.com/s3rj1k/55b10cd20f31542046018fcce32f103e
+# Password: echo ubuntu | mkpasswd -m sha512crypt --stdin
+
+function build_remix_disc () {
+    if [ ! -d "$VAR_BUILD" ]; then mkdir -p "$VAR_BUILD"; else rm -rf "$VAR_BUILD"; fi
+    printfl "I" "Starting $VM_REMIX_ISO_NAME remix build process ... \n"
+    if [ ! -d "$VAR_DATA" ]; then mkdir -p "$VAR_DATA"; fi
+    printfl "" "Extracting OS data: $(7z x "$VAR_IMAGES/$VM_OS_ISO" -o"$VAR_BUILD/$VM_NAME" -y)\n"
+    if [ ! -d "$VAR_BUILD/$VM_NAME/nocloud" ]; then mkdir -p "$VAR_BUILD/$VM_NAME/nocloud"; fi
+    printfl "" "Copying automation script files:\n$(cp --verbose -r "$VAR_DATA/automation/"* "$VAR_BUILD/$VM_NAME/nocloud")\n"
+    printfl "" "Preparing ISO:\n$(rm -rf "$VAR_BUILD/$VM_NAME/[BOOT]/")\n"
+    sed -i 's|---|autoinstall ds=nocloud\\\;s=/cdrom/nocloud/ ---|g' "$VAR_BUILD/$VM_NAME/boot/grub/grub.cfg"
+    sed -i 's|---|autoinstall ds=nocloud;s=/cdrom/nocloud/ ---|g' "$VAR_BUILD/$VM_NAME/isolinux/txt.cfg"
+    sed -i 's/timeout 50/timeout 10/g' "$VAR_BUILD/$VM_NAME/isolinux/isolinux.cfg"
+    md5sum "$VAR_BUILD/$VM_NAME/README.diskdefines" > "$VAR_BUILD/$VM_NAME/md5sum.txt"
+    sed -i 's|'"$VAR_BUILD/$VM_NAME/"'|./|g' "$VAR_BUILD/$VM_NAME/md5sum.txt"
+    mkisofs -o "$VAR_IMAGES/$VM_REMIX_ISO_NAME" -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -J -l -V "${VM_NAME^} OS ISO" "$VAR_BUILD/$VM_NAME"
+    printfl "" "$(file "$VAR_IMAGES/$VM_REMIX_ISO_NAME")\n"
+}
+
 function boot_qemu () {
     printfl "W" "QEMU binary: $QEMU_EXECUTABLE\n"
-    if [ ! -f "$VAR_IMAGES/$VM_WINDOWS_ISO" ]; then
-        printfl "E" "Windows ISO ${RED}file $VAR_IMAGES/$VM_WINDOWS_ISO missing$NC, exiting ...\n"
+    if [ ! -f "$VAR_IMAGES/$VM_REMIX_ISO_NAME" ]; then
+        printfl "E" "ISO ${RED}file $VAR_IMAGES/$VM_REMIX_ISO_NAME missing$NC, exiting ...\n"
     else
-        printfl "I" "Booting virtual disk $VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE [CD1: $VAR_IMAGES/$VM_WINDOWS_ISO, CD2: $VAR_IMAGES/$VM_DATA_ISO_NAME] ...\n"
+        printfl "I" "Booting virtual disk $VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE [CD1: $VAR_IMAGES/$VM_REMIX_ISO_NAME, CD2: $VAR_IMAGES/$VM_DATA_ISO_NAME] ...\n"
         # malnet-wan = access to internet, malnet-lan = no access to internet
         $QEMU_EXECUTABLE \
             -machine pc,accel=kvm -m 4G -vga std \
             -net user -net nic,model=rtl8139,id=malnet-wan \
             -device virtio-scsi-pci -device scsi-hd,drive=vd0 \
             -drive if=none,aio=native,cache=none,discard=unmap,file="$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE",id=vd0 \
-            -drive media=cdrom,file="$VAR_IMAGES/$VM_WINDOWS_ISO" \
+            -drive media=cdrom,file="$VAR_IMAGES/$VM_REMIX_ISO_NAME" \
             -drive media=cdrom,file="$VAR_IMAGES/$VM_DATA_ISO_NAME"
     fi
 }
 
 function boot_kvm () {
-    if [ ! -f "$VAR_IMAGES/$VM_WINDOWS_ISO" ]; then
-        printfl "E" "ISO ${RED}file $VAR_IMAGES/$VM_WINDOWS_ISO missing$NC, exiting ...\n"
+    if [ ! -f "$VAR_IMAGES/$VM_REMIX_ISO_NAME" ]; then
+        printfl "E" "ISO ${RED}file $VAR_IMAGES/$VM_REMIX_ISO_NAME missing$NC, exiting ...\n"
     else
-        printfl "I" "Booting virtual disk $VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE [CD1: $VAR_IMAGES/$VM_WINDOWS_ISO, CD2: $VAR_IMAGES/$VM_DATA_ISO_NAME] ...\n"
+        printfl "I" "Booting virtual disk $VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE [CD1: $VAR_IMAGES/$VM_REMIX_ISO_NAME, CD2: $VAR_IMAGES/$VM_DATA_ISO_NAME] ...\n"
         # malnet-wan = access to internet, malnet-lan = no access to internet
         virt-install \
             --check all=off \
@@ -193,7 +214,7 @@ function boot_kvm () {
             --virt-type=kvm \
             --ram=4096 \
             --vcpus=2 \
-            --cdrom="$VAR_IMAGES/$VM_WINDOWS_ISO" \
+            --cdrom="$VAR_IMAGES/$VM_REMIX_ISO_NAME" \
             --disk "$VAR_IMAGES/$VM_DATA_ISO_NAME",device=cdrom,bus=sata \
             --disk "$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE",bus=sata,format="$VM_DISK_TYPE" \
             --graphics spice \
@@ -203,9 +224,10 @@ function boot_kvm () {
 }
 
 function build () {
-    download_virtio_drivers
+    #download_virtio_drivers
     create_virtual_hdd_disk
     build_cdrom_disc
+    build_remix_disc
     cleanup
     printfl "I" "Build process complete, exiting ...\n"
     printfl "W" "Use $0 --boot-qemu or $0 --boot-kvm to install the OS on the virtual disk image\n"
@@ -226,9 +248,10 @@ function main () {
     printfl "I" "Action: $value_action\n"
     printfl "I" "Parameters: $value_parameters\n"
     local missing_variables=()
-    if [ ! -n "$VM_WINDOWS_ISO" ]; then missing_variables+=("VM_WINDOWS_ISO"); fi
-    if [ ! -n "$VM_DRIVERS_URL" ]; then missing_variables+=("VM_DRIVERS_URL"); fi
-    if [ ! -n "$VM_DRIVERS_ISO_NAME" ]; then missing_variables+=("VM_DRIVERS_ISO_NAME"); fi
+    if [ ! -n "$VM_OS_ISO" ]; then missing_variables+=("VM_OS_ISO"); fi
+    # if [ ! -n "$VM_DRIVERS_URL" ]; then missing_variables+=("VM_DRIVERS_URL"); fi
+    # if [ ! -n "$VM_DRIVERS_ISO_NAME" ]; then missing_variables+=("VM_DRIVERS_ISO_NAME"); fi
+    if [ ! -n "$VM_REMIX_ISO_NAME" ]; then missing_variables+=("VM_REMIX_ISO_NAME"); fi
     if [ ! -n "$VM_DATA_ISO_NAME" ]; then missing_variables+=("VM_DATA_ISO_NAME"); fi
     if [ ! -n "$VM_NAME" ]; then missing_variables+=("VM_NAME"); fi
     if [ ! -n "$VM_DISK_SIZE" ]; then missing_variables+=("VM_DISK_SIZE"); fi
@@ -247,6 +270,9 @@ function main () {
             "--build-cdrom-disc")
                 build_cdrom_disc
             ;;
+            "--build-remix-disc")
+                build_remix_disc
+            ;;
             "--boot-qemu")
                 boot_qemu
             ;;
@@ -257,6 +283,7 @@ function main () {
                 printfl "E" "$0 - Option \"$RED$value_action$NC\" was not recognized ...\n"
                 printfl "" "$MAGENTA--build:$NC Bootstraps build process\n"
                 printfl "" "$MAGENTA--build-cdrom-disc:$NC Rebuilds $VAR_BUILD > $VAR_IMAGES/$VM_DATA_ISO_NAME CD-ROM disc\n"
+                printfl "" "$MAGENTA--build-remix-disc:$NC Remixes $VM_OS_ISO > $VAR_IMAGES/$VM_REMIX_ISO_NAME CD-ROM disc\n"
                 printfl "" "$MAGENTA--boot-qemu:$NC Boots $VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE using QEMU\n"
                 printfl "" "$MAGENTA--boot-kvm:$NC Boots $VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE using KVM\n"
             ;;
