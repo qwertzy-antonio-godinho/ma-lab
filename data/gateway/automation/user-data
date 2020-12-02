@@ -10,7 +10,7 @@ autoinstall:
     allow-pw: no
   identity:
     hostname: gateway
-    password: "$6$JaJvSOi3Rb$CWJgptkfhuauhkwMipD9dyRBHj1.Wu8OXy/aaWUX.pOEOFC/32HsjfzburRYQB60dquKdt/haVHmIdgpakGXn0" # ubuntu
+    password: "$6$ggt9CyIqWVQ$5b.2ck6INu1EpiCdxGXJPMb1tXkbvK/b/lJbFoDFRmfXoQJf8CoqhTOXJzDp1KxdUWFIayWHq.ij9wgyjHnCb." # ubuntu
     username: gateway
   user-data:
     disable_root: true 
