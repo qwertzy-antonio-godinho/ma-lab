@@ -31,7 +31,7 @@ Collection of bash scripts to automate the installation of an Operating System o
 
     - Gateway:
         - `lab-gateway-vm-builder.sh` file:
-            - VM_OS_ISO
+            - VM_OS_ISO variable points to Ubuntu ISO file
             - Customize VM_NAME, VM_DISK_SIZE, VM_DISK_TYPE variables
         - Optional steps:
             - Edit VM configuration files `user-data`, and set the username and password (default username: gateway, password: ubuntu) `echo YOUR_PASSWORD | mkpasswd -m sha512crypt --stdin`
