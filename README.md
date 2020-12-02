@@ -44,11 +44,15 @@ Collection of bash scripts to automate the installation of an Operating System o
             - Edit VM configuration files `autounattend.xml` (drives the installation: web gui here https://www.windowsafg.com/) and `vm-setup.ps1` (executed post installation) to suit your needs
             - Any files places inside `tools` directory will me included in the ISO build and copied over to the desktop.
 
-4. Execute `lab-win7-64-vm-builder.sh --build`:
+4. Execute `lab-win7-64-vm-builder.sh --build` or `lab-gateway-vm-builder.sh --build` according to the OS you want to bootstrap
 
-5. Perform installation:
-    - `lab-win7-64-vm-builder.sh --boot-kvm`: Installs OS using KVM
-    - `lab-win7-64-vm-builder.sh --boot-menu`: Installs OS using QEMU
+5. Perform OS installation:
+    - KVM:
+        - Gateway: `lab-gateway-vm-builder.sh --boot-kvm`
+        - Analysis: `lab-win7-64-vm-builder.sh --boot-kvm`
+    - QEMU:
+        - Gateway: `lab-gateway-vm-builder.sh --boot-qemu`
+        - Analysis: `lab-win7-64-vm-builder.sh --boot-qemu`
 
 **Script description**
 - `lab-win7-64-vm-builder.sh` : Sets environment, downloads, build ISOs and executes QEMU to install the target OS on a virtual hard disk file.
