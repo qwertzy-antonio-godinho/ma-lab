@@ -34,15 +34,15 @@ Collection of bash scripts to automate the installation of an Operating System o
             - VM_OS_ISO variable points to Ubuntu ISO file
             - Customize VM_NAME, VM_DISK_SIZE, VM_DISK_TYPE variables
         - Optional steps:
-            - Edit VM configuration files `user-data`, and set the username and password (default username: gateway, password: ubuntu) `echo YOUR_PASSWORD | mkpasswd -m sha512crypt --stdin`
-            - Any files places inside `tools` directory will me included in the ISO build and accessible from within the guest.
+            - Edit VM configuration `user-data` file, and set the username and password (default username: gateway, password: ubuntu) `echo YOUR_PASSWORD | mkpasswd -m sha512crypt --stdin`
+            - Any files inside `tools` directory will be included in the ISO build and accessible from within the guest.
     - Analysis:
         - `lab-win7-64-vm-builder.sh` file:
             - VM_WINDOWS_ISO variable points to Windows ISO file
             - Customize VM_NAME, VM_DISK_SIZE, VM_DISK_TYPE variables
         - Optional steps:
             - Edit VM configuration files `autounattend.xml` (drives the installation: web gui here https://www.windowsafg.com/) and `vm-setup.ps1` (executed post installation) to suit your needs
-            - Any files places inside `tools` directory will me included in the ISO build and copied over to the desktop.
+            - Any files inside `tools` directory will be included in the ISO build and copied over to the desktop.
 
 4. Execute `lab-win7-64-vm-builder.sh --build` or `lab-gateway-vm-builder.sh --build` according to the OS you want to bootstrap
 
