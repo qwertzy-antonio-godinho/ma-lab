@@ -16,7 +16,7 @@ VM_DISK_TYPE="qcow2"
 # VM ISOs
 # ------------------------------
 
-VM_OS_ISO="ubuntu-20.04-live-server-amd64.iso"
+VM_OS_ISO="ubuntu-20.04.1-live-server-amd64.iso"
 #VM_DRIVERS_URL="https://fedorapeople.org/groups/virt/virtio-win/deprecated-isos/latest/virtio-win-0.1-100.iso"
 #VM_DRIVERS_ISO_NAME="virtio-windows-drivers.iso"
 VM_REMIX_ISO_NAME="ubuntu-20.04-live-server-remixed-amd64.iso"

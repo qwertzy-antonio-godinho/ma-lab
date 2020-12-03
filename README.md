@@ -4,7 +4,7 @@ Collection of bash scripts to automate the installation of an Operating System o
 
 **VMs**
 - Analysis machine: Windows 7 64 Bit (tested with GSP1RMCPRXFRER_EN_DVD iso)
-- Gateway machine: Ubuntu 20.04 Server 64 Bit
+- Gateway machine: Ubuntu 20.04.01 Server 64 Bit
 
 **Dependencies**
 - KVM (Ubuntu `sudo apt install -y qemu qemu-kvm libvirt-daemon libvirt-clients bridge-utils virt-manager`)
@@ -25,16 +25,16 @@ Collection of bash scripts to automate the installation of an Operating System o
         - `lab-network.sh --autostart network-malnet-internal.xml`
         - `lab-network.sh --up network-malnet-internal.xml` (if autostart is not set, then this script needs to be run after every host reboot)
 
-2. Place a copy of a Windows 7 64 Bit and Ubuntu 20.04 Server 64 Bit ISO file in `images` directory
+2. Place a copy of a Windows 7 64 Bit and Ubuntu 20.04.01 Server 64 Bit ISO file in `images` directory
 
 3. Edit script files:
 
-    - Gateway - NOTE: username: gateway, password: ubuntu DOES NOT WORK!!! instead had to hardcode root user's password as ubuntu, after login add a user `adduser gateway` and change root password!!!
+    - Gateway:
         - `lab-gateway-vm-builder.sh` file:
             - VM_OS_ISO variable points to Ubuntu ISO file
             - Customize VM_NAME, VM_DISK_SIZE, VM_DISK_TYPE variables
         - Optional steps:
-            - Edit VM configuration `user-data` file, and set the username and password (default username: gateway, password: ubuntu DOES NOT WORK!) `echo YOUR_PASSWORD | mkpasswd -m sha512crypt --stdin`
+            - Edit VM configuration `user-data` file, make changes and set the username and password (default username: gateway, password: ubuntu) `echo YOUR_PASSWORD | mkpasswd -m sha512crypt --stdin`
             - Any files inside `tools` directory will be included in the ISO build and accessible from within the guest.
     - Analysis:
         - `lab-win7-64-vm-builder.sh` file:

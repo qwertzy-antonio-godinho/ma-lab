@@ -1,34 +1,32 @@
 #cloud-config
 autoinstall:
   version: 1
+  early-commands:
+    - systemctl stop ssh
   locale: en_US.UTF-8
   keyboard:
     layout: pt
     variant: pt
   ssh:
     install-server: false
-    allow-pw: no
-  user-data:
-    disable_root: false 
-  early-commands:
-  - systemctl stop ssh
+    allow-pw: false
   identity:
     hostname: gateway
-    password: $6$exDY1mhS4KUYCE/2$zmn9ToZwTKLhCw.b4/b.ZRTIZM30JZ4QrOQ2aOXJ8yk96xpcCof0kxKwuX1kqLG/ygbJ1f8wxED22bTL4F46P0
+    password: $6$JaJvSOi3Rb$CWJgptkfhuauhkwMipD9dyRBHj1.Wu8OXy/aaWUX.pOEOFC/32HsjfzburRYQB60dquKdt/haVHmIdgpakGXn0 # ubuntu
     username: gateway
-  late-commands:
-  - curtin in-target --target=/target -- apt-get --purge -y --quiet=2 remove cloud-guest-utils cloud-initramfs-copymods cloud-initramfs-dyn-netconf snapd apport bcache-tools btrfs-progs friendly-recovery fwupd landscape-common lxd-agent-loader popularity-contest sosreport ufw byobu
-  - curtin in-target --target=/target -- apt-get --purge -y --quiet=2 autoremove
-  - curtin in-target --target=/target -- apt-get -qq update
-  - curtin in-target --target=/target -- apt-get -y install ncdu htop mc arj zip p7zip net-tools scrot --no-install-recommends
-  - curtin in-target --target=/target -- apt-get -y install xserver-xorg xdm openbox caja engrampa eom mousepad tilix conky rofi dunst firefox --no-install-recommends
-  - curtin in-target --target=/target -- apt-get -y install build-essential python3-pip python3-venv python-is-python3 openjdk-14-jre-headless --no-install-recommends
-  - curtin in-target --target=/target -- apt-get clean
-  - echo 'gateway ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/gateway
-  - sed -ie 's/GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="net.ifnames=0 ipv6.disable=1 biosdevname=0"/' /target/etc/default/grub
-  - curtin in-target --target /target update-grub2
-  - sed -i 's/ENABLED=1/ENABLED=0/' /target/etc/default/motd-news
-  - sed -i 's|^root:.:|root:$6$L3Wn1XPbX0Ulc$J9xDQJWS4Ns1BfSRMIiaggoye0hHECCFim7OyUb2GlLhQ.qB5JOwuCMfgCTrKv.WK87v/ubgHMa5fNneKeJ2J0:|' /target/etc/shadow # ubuntu
+  user-data:
+    disable_root: true
+  network:
+    network:
+      version: 2
+      ethernets:
+        eth0:
+          dhcp4: true
+        eth1:
+          dhcp4: false
+          addresses: 
+          - 192.168.200.10/24
+          nameservers: {}
   storage:
     swap:
       size: 0
@@ -38,3 +36,11 @@ autoinstall:
     - {device: disk-sda, size: -1, wipe: superblock, flag: '', number: 2, preserve: false, type: partition, id: partition-1}
     - {fstype: ext4, volume: partition-1, preserve: false, type: format, id: format-0}
     - {device: format-0, path: /, type: mount, id: mount-0}
+  late-commands:
+  - curtin in-target --target=/target -- apt-get --purge -y --quiet=2 remove snapd apport bcache-tools btrfs-progs friendly-recovery fwupd landscape-common lxd-agent-loader popularity-contest sosreport ufw byobu
+  - curtin in-target --target=/target -- apt-get --purge -y --quiet=2 autoremove
+  - curtin in-target --target=/target -- apt-get clean
+  - echo 'gateway ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/gateway
+  - sed -ie 's/GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="net.ifnames=0 ipv6.disable=1 biosdevname=0"/' /target/etc/default/grub
+  - curtin in-target --target /target update-grub2
+  - sed -i 's/ENABLED=1/ENABLED=0/' /target/etc/default/motd-news
