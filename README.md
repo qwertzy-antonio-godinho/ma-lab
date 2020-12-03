@@ -29,12 +29,12 @@ Collection of bash scripts to automate the installation of an Operating System o
 
 3. Edit script files:
 
-    - Gateway:
+    - Gateway - NOTE: username: gateway, password: ubuntu DOES NOT WORK!!! instead had to hardcode root user's password as ubuntu, after login add a user `adduser gateway` and change root password!!!
         - `lab-gateway-vm-builder.sh` file:
             - VM_OS_ISO variable points to Ubuntu ISO file
             - Customize VM_NAME, VM_DISK_SIZE, VM_DISK_TYPE variables
         - Optional steps:
-            - Edit VM configuration `user-data` file, and set the username and password (default username: gateway, password: ubuntu) `echo YOUR_PASSWORD | mkpasswd -m sha512crypt --stdin`
+            - Edit VM configuration `user-data` file, and set the username and password (default username: gateway, password: ubuntu DOES NOT WORK!) `echo YOUR_PASSWORD | mkpasswd -m sha512crypt --stdin`
             - Any files inside `tools` directory will be included in the ISO build and accessible from within the guest.
     - Analysis:
         - `lab-win7-64-vm-builder.sh` file:
