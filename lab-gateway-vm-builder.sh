@@ -208,8 +208,7 @@ function boot_kvm () {
         virt-install \
             --check all=off \
             --name="$VM_NAME" \
-            --os-type=Windows \
-            --os-variant=win7 \
+            --os-type=linux \
             --arch=x86_64 \
             --virt-type=kvm \
             --ram=4096 \
@@ -218,8 +217,8 @@ function boot_kvm () {
             --disk "$VAR_IMAGES/$VM_DATA_ISO_NAME",device=cdrom,bus=sata \
             --disk "$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE",bus=sata,format="$VM_DISK_TYPE" \
             --graphics spice \
-            --network network=malnet-wan \
-            --network network=malnet-lan
+            --network network=malnet-wan,model="e1000e" \
+            --network network=malnet-lan,model="e1000e"
     fi
 }
 

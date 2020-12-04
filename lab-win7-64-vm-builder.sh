@@ -16,7 +16,7 @@ VM_DISK_TYPE="qcow2"
 # VM ISOs
 # ------------------------------
 
-VM_WINDOWS_ISO="en_windows_7_professional_with_sp1_x64_dvd_u_676939.iso"
+VM_OS_ISO="en_windows_7_professional_with_sp1_x64_dvd_u_676939.iso"
 VM_DRIVERS_URL="https://fedorapeople.org/groups/virt/virtio-win/deprecated-isos/latest/virtio-win-0.1-100.iso"
 VM_DRIVERS_ISO_NAME="virtio-windows-drivers.iso"
 VM_DATA_ISO_NAME="windows-data.iso"
@@ -163,42 +163,42 @@ function build_cdrom_disc () {
 
 function boot_qemu () {
     printfl "W" "QEMU binary: $QEMU_EXECUTABLE\n"
-    if [ ! -f "$VAR_IMAGES/$VM_WINDOWS_ISO" ]; then
-        printfl "E" "Windows ISO ${RED}file $VAR_IMAGES/$VM_WINDOWS_ISO missing$NC, exiting ...\n"
+    if [ ! -f "$VAR_IMAGES/$VM_OS_ISO" ]; then
+        printfl "E" "ISO ${RED}file $VAR_IMAGES/$VM_OS_ISO missing$NC, exiting ...\n"
     else
-        printfl "I" "Booting virtual disk $VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE [CD1: $VAR_IMAGES/$VM_WINDOWS_ISO, CD2: $VAR_IMAGES/$VM_DATA_ISO_NAME] ...\n"
+        printfl "I" "Booting virtual disk $VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE [CD1: $VAR_IMAGES/$VM_OS_ISO, CD2: $VAR_IMAGES/$VM_DATA_ISO_NAME] ...\n"
         # malnet-wan = access to internet, malnet-lan = no access to internet
         $QEMU_EXECUTABLE \
             -machine pc,accel=kvm -m 4G -vga std \
             -net user -net nic,model=rtl8139,id=malnet-wan \
             -device virtio-scsi-pci -device scsi-hd,drive=vd0 \
             -drive if=none,aio=native,cache=none,discard=unmap,file="$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE",id=vd0 \
-            -drive media=cdrom,file="$VAR_IMAGES/$VM_WINDOWS_ISO" \
+            -drive media=cdrom,file="$VAR_IMAGES/$VM_OS_ISO" \
             -drive media=cdrom,file="$VAR_IMAGES/$VM_DATA_ISO_NAME"
     fi
 }
 
 function boot_kvm () {
-    if [ ! -f "$VAR_IMAGES/$VM_WINDOWS_ISO" ]; then
-        printfl "E" "ISO ${RED}file $VAR_IMAGES/$VM_WINDOWS_ISO missing$NC, exiting ...\n"
+    if [ ! -f "$VAR_IMAGES/$VM_OS_ISO" ]; then
+        printfl "E" "ISO ${RED}file $VAR_IMAGES/$VM_OS_ISO missing$NC, exiting ...\n"
     else
-        printfl "I" "Booting virtual disk $VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE [CD1: $VAR_IMAGES/$VM_WINDOWS_ISO, CD2: $VAR_IMAGES/$VM_DATA_ISO_NAME] ...\n"
+        printfl "I" "Booting virtual disk $VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE [CD1: $VAR_IMAGES/$VM_OS_ISO, CD2: $VAR_IMAGES/$VM_DATA_ISO_NAME] ...\n"
         # malnet-wan = access to internet, malnet-lan = no access to internet
         virt-install \
             --check all=off \
             --name="$VM_NAME" \
-            --os-type=Windows \
+            --os-type=windows \
             --os-variant=win7 \
             --arch=x86_64 \
             --virt-type=kvm \
             --ram=4096 \
             --vcpus=2 \
-            --cdrom="$VAR_IMAGES/$VM_WINDOWS_ISO" \
+            --cdrom="$VAR_IMAGES/$VM_OS_ISO" \
             --disk "$VAR_IMAGES/$VM_DATA_ISO_NAME",device=cdrom,bus=sata \
             --disk "$VAR_OUTPUT/$VM_NAME.$VM_DISK_TYPE",bus=sata,format="$VM_DISK_TYPE" \
             --graphics spice \
-            --network network=malnet-wan \
-            --network network=malnet-lan
+            --network network=malnet-wan,model="e1000e" \
+            --network network=malnet-lan,model="e1000e"
     fi
 }
 
@@ -226,7 +226,7 @@ function main () {
     printfl "I" "Action: $value_action\n"
     printfl "I" "Parameters: $value_parameters\n"
     local missing_variables=()
-    if [ ! -n "$VM_WINDOWS_ISO" ]; then missing_variables+=("VM_WINDOWS_ISO"); fi
+    if [ ! -n "$VM_OS_ISO" ]; then missing_variables+=("VM_OS_ISO"); fi
     if [ ! -n "$VM_DRIVERS_URL" ]; then missing_variables+=("VM_DRIVERS_URL"); fi
     if [ ! -n "$VM_DRIVERS_ISO_NAME" ]; then missing_variables+=("VM_DRIVERS_ISO_NAME"); fi
     if [ ! -n "$VM_DATA_ISO_NAME" ]; then missing_variables+=("VM_DATA_ISO_NAME"); fi
