@@ -4,6 +4,8 @@ autoinstall:
   early-commands:
     - systemctl stop ssh
   locale: en_US.UTF-8
+  userdata:
+    timezone: Europe/London
   keyboard:
     layout: pt
     variant: pt
@@ -27,6 +29,11 @@ autoinstall:
           addresses: 
           - 192.168.200.10/24
           nameservers: {}
+  apt:
+    preserve_sources_list: false
+    primary:
+      - arches: [amd64]
+        uri: "http://archive.ubuntu.com/ubuntu/"
   storage:
     swap:
       size: 0
@@ -36,6 +43,8 @@ autoinstall:
     - {device: disk-sda, size: -1, wipe: superblock, flag: '', number: 2, preserve: false, type: partition, id: partition-1}
     - {fstype: ext4, volume: partition-1, preserve: false, type: format, id: format-0}
     - {device: format-0, path: /, type: mount, id: mount-0}
+  packages:
+  - open-vm-tools
   late-commands:
   - curtin in-target --target=/target -- apt-get --purge -y --quiet=2 remove snapd apport bcache-tools btrfs-progs friendly-recovery fwupd landscape-common lxd-agent-loader popularity-contest sosreport ufw byobu
   - curtin in-target --target=/target -- apt-get --purge -y --quiet=2 autoremove

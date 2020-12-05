@@ -233,7 +233,7 @@
                 <!-- COPY TOOLS DIRECTORY FROM CD-ROM TO DESKTOP -->
                 <SynchronousCommand wcm:action="add">
                     <Order>6</Order>
-                    <CommandLine>cmd /c xcopy E:\TOOLS\* C:\Users\W7B64\Desktop\ /E /H /C /I</CommandLine>
+                    <CommandLine>cmd /c xcopy E:\DESKTOP\* C:\Users\W7B64\Desktop\ /E /H /C /I</CommandLine>
                     <Description>Post-installation setup</Description>
                 </SynchronousCommand>
             </FirstLogonCommands>

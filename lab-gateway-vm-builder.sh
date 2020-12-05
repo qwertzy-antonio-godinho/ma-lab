@@ -155,7 +155,7 @@ function build_cdrom_disc () {
     printfl "I" "Starting $VM_DATA_ISO_NAME build process ... \n"
     if [ ! -d "$VAR_DATA" ]; then mkdir -p "$VAR_DATA/$VM_NAME"; fi
     # printfl "" "Extracting Virtio drivers data: $(7z x "$VAR_IMAGES/$VM_DRIVERS_ISO_NAME" -o"$VAR_BUILD/drivers" -y)\n"
-    if [ -d "$VAR_DATA/$tools" ]; then printfl "" "Copying tools files:\n$(cp --verbose -r "$VAR_DATA/tools/"* "$VAR_BUILD")\n"; fi
+    if [ -d "$VAR_DATA/addons" ]; then printfl "" "Copying addons files:\n$(cp --verbose -r "$VAR_DATA/addons/"* "$VAR_BUILD")\n"; fi
     #printfl "" "Copying automation script files:\n$(cp --verbose -r "$VAR_DATA/automation/"* "$VAR_BUILD")\n"
     printfl "I" "Generating $VM_DATA_ISO_NAME ISO file ...\n"
     mkisofs -m '.*' -J -r "$VAR_BUILD" > "$VAR_IMAGES/$VM_DATA_ISO_NAME"

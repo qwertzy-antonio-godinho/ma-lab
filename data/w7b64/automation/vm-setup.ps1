@@ -95,7 +95,7 @@ if ($pg) {
 }
 
 # Disable hibernation
-& powercfg /h off
+#& powercfg /h off
 
 # Try to activate Windows if not already activated
 $act = cscript $env:SystemRoot\System32\slmgr.vbs /dli
