@@ -14,3 +14,4 @@
 
 /data/gateway/addons/*
 !/data/gateway/addons/addons_here.txt
+!/data/gateway/addons/vm-setup.sh
