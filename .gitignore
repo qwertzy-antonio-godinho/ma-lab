@@ -1,17 +1,11 @@
-/build/*
+/*.qcow2
+/engine/w7b64/build
+/engine/w7b64/data/desktop/*.zip
+/engine/w7b64/data/w7b64*
+/engine/w7b64/iso/*.iso
 
-/disks/*
-
-/images/*
-!/images/os_iso_here.txt
-
-/data/w7b64/addons/*
-!/data/w7b64/addons/addons_here.txt
-
-!/data/w7b64/addons/desktop/
-/data/w7b64/addons/desktop/set-ip.bat
-/data/w7b64/addons/desktop/services-off.ps1
-
-/data/gateway/addons/*
-!/data/gateway/addons/addons_here.txt
-!/data/gateway/addons/vm-setup.sh
+/engine/gateway/build
+/engine/gateway/data/gateway-tools/*
+!/engine/gateway/data/gateway-tools/vm-*
+/engine/gateway/data/gateway-tools/configurations/tools
+/engine/gateway/iso/*.iso

@@ -50,6 +50,6 @@ autoinstall:
   - curtin in-target --target=/target -- apt-get --purge -y --quiet=2 autoremove
   - curtin in-target --target=/target -- apt-get clean
   - echo 'gateway ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/gateway
-  - sed -ie 's/GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="net.ifnames=0 ipv6.disable=1 biosdevname=0"/' /target/etc/default/grub
+  - sed -ie 's/GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="quiet net.ifnames=0 ipv6.disable=1 biosdevname=0"/' /target/etc/default/grub
   - curtin in-target --target /target update-grub2
   - sed -i 's/ENABLED=1/ENABLED=0/' /target/etc/default/motd-news
